@@ -182,6 +182,16 @@ const toolHandlers: Record<string, ToolHandler> = {
     };
   },
 
+  // Private tool for widget - NO ui/resourceUri (won't trigger UI reload)
+  // Per SEP-1865: "MCP servers MAY expose private tools specifically designed for UI interaction"
+  "worldcup.getDataForWidget": async () => {
+    const prediction = savedPrediction ?? defaultPrediction();
+    return {
+      data: { teams, groups, bracketTemplate, prediction, playoffSlots },
+      // NO metadata with ui/resourceUri - this prevents MCP Jam from reloading the UI
+    };
+  },
+
   "worldcup.savePrediction": async (args) => {
     const incoming = args.prediction as WorldCupPrediction;
     if (!incoming) throw new Error("Missing prediction parameter");
