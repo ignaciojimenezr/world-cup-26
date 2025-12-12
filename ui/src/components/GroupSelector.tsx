@@ -43,6 +43,49 @@ const GroupSelector = ({
 
   const allComplete = value.every(isGroupComplete);
 
+  // Auto-generate random predictions for all groups
+  const autoGenerate = () => {
+    const newPlayoffSelections: Record<string, TeamId> = {};
+    
+    // For each group, determine the 4 teams (picking random playoff winners)
+    const newPredictions = groups.map((group) => {
+      const groupTeams: TeamId[] = [];
+      
+      for (const teamId of group.teams) {
+        if (teamId.includes("playoff")) {
+          // Pick a random team from the playoff candidates
+          const candidates = playoffSlots[teamId];
+          if (candidates && candidates.length > 0) {
+            const randomIdx = Math.floor(Math.random() * candidates.length);
+            const selectedTeam = candidates[randomIdx] as TeamId;
+            groupTeams.push(selectedTeam);
+            // Store the selection
+            const key = `${group.id}-${teamId}`;
+            newPlayoffSelections[key] = selectedTeam;
+          }
+        } else {
+          groupTeams.push(teamId);
+        }
+      }
+      
+      // Shuffle the teams randomly for positions
+      const shuffled = [...groupTeams].sort(() => Math.random() - 0.5);
+      
+      return {
+        groupId: group.id,
+        positions: {
+          1: shuffled[0] || ("" as TeamId),
+          2: shuffled[1] || ("" as TeamId),
+          3: shuffled[2] || ("" as TeamId),
+          4: shuffled[3] || ("" as TeamId),
+        },
+      };
+    });
+    
+    setSelectedPlayoffTeams(newPlayoffSelections);
+    onChange(newPredictions);
+  };
+
   // Get the assigned position for a team in a group
   const getPositionForTeam = (groupId: string, teamId: TeamId): GroupPosition | undefined => {
     const prediction = value.find((g) => g.groupId === groupId);
@@ -189,9 +232,14 @@ const GroupSelector = ({
             Click teams in order: 1st → 2nd → 3rd → 4th
           </p>
         </div>
-        <Button disabled={!allComplete} onClick={onContinue}>
-          Continue to Third Place →
-        </Button>
+        <div className="flex gap-2">
+          <Button variant="outline" onClick={autoGenerate}>
+            Auto Generate
+          </Button>
+          <Button disabled={!allComplete} onClick={onContinue}>
+            Continue to Third Place →
+          </Button>
+        </div>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">

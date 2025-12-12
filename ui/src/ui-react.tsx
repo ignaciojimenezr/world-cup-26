@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Bracket,
   Group,
@@ -82,57 +82,114 @@ const WorldCupApp = () => {
   const [resolvedBracket, setResolvedBracket] = useState<ResolvedBracket | null>(null);
   const [activeMatch, setActiveMatch] = useState<ResolvedMatch | null>(null);
   const [playoffSlots, setPlayoffSlots] = useState<Record<string, string[]>>({});
+  const dataReceivedRef = useRef(false);
 
   useEffect(() => {
     setView(viewFromUri(resourceUri));
   }, [resourceUri]);
 
   useEffect(() => {
-    (async () => {
-      console.log("[WorldCup] Fetching initial data...");
-      try {
-        const response = await callTool<{
-          data?: {
-            teams: Team[];
-            groups: Group[];
-            bracketTemplate: Bracket;
-            prediction: WorldCupPrediction;
-            playoffSlots?: Record<string, string[]>;
-          };
-          teams?: Team[];
-          groups?: Group[];
-          bracketTemplate?: Bracket;
-          prediction?: WorldCupPrediction;
-          playoffSlots?: Record<string, string[]>;
-        }>("worldcup.getInitialData", { includeSaved: true });
-        
-        console.log("[WorldCup] Raw response:", response);
-        
-        // Handle different response shapes
-        const payload = response?.data ?? response;
-        
-        if (!payload) {
-          throw new Error("Empty response from worldcup.getInitialData");
+    // Listen for mcp:tool-result event from host (per MCP Apps spec)
+    // The host calls the tool and passes the result via this event
+    const handleToolResult = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      console.log("[WorldCup] Received mcp:tool-result event:", customEvent.detail);
+      const detail = customEvent.detail;
+      if (detail && typeof detail === "object") {
+        // The tool result is in detail.result or detail directly
+        const result = detail.result ?? detail;
+        const payload = result?.data ?? result;
+        if (payload?.teams || payload?.groups) {
+          console.log("[WorldCup] Setting data from mcp:tool-result:", payload);
+          dataReceivedRef.current = true;
+          setTeams(payload.teams ?? []);
+          setGroups(payload.groups ?? []);
+          setBracketTemplate(payload.bracketTemplate ?? null);
+          setPrediction(payload.prediction ?? null);
+          setPlayoffSlots(payload.playoffSlots ?? {});
+          setLoading(false);
         }
-        
-        console.log("[WorldCup] Parsed payload:", payload);
-        
-        setTeams(payload.teams ?? []);
-        setGroups(payload.groups ?? []);
-        setBracketTemplate(payload.bracketTemplate ?? null);
-        setPrediction(payload.prediction ?? null);
-        setPlayoffSlots(payload.playoffSlots ?? {});
-        if (payload.prediction && payload.bracketTemplate) {
-          setResolvedBracket(resolveBracketLocally(payload.bracketTemplate, payload.prediction));
-        }
-      } catch (err) {
-        console.error("[WorldCup] Error loading data:", err);
-        setError((err as Error)?.message ?? "Failed to load initial data");
-      } finally {
-        setLoading(false);
       }
-    })();
+    };
+
+    // Also listen for postMessage (fallback for different host implementations)
+    const handlePostMessage = (event: MessageEvent) => {
+      const data = event.data;
+      // Handle JSON-RPC response format
+      if (data?.jsonrpc === "2.0" && data?.result) {
+        const payload = data.result?.data ?? data.result;
+        if (payload?.teams || payload?.groups) {
+          console.log("[WorldCup] Setting data from postMessage:", payload);
+          dataReceivedRef.current = true;
+          setTeams(payload.teams ?? []);
+          setGroups(payload.groups ?? []);
+          setBracketTemplate(payload.bracketTemplate ?? null);
+          setPrediction(payload.prediction ?? null);
+          setPlayoffSlots(payload.playoffSlots ?? {});
+          setLoading(false);
+        }
+      }
+    };
+
+    if (isInMcpHost()) {
+      console.log("[WorldCup] Running in MCP host - calling private tool (no UI reload)");
+      // Call the private tool that doesn't have ui/resourceUri metadata
+      // This won't trigger MCP Jam to reload the UI
+      fetchInitialData();
+      return;
+    }
+    
+    // Local development mode - fetch directly
+    fetchInitialData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  const fetchInitialData = async () => {
+    console.log("[WorldCup] Fetching initial data...");
+    try {
+      // Use the private tool that doesn't have ui/resourceUri metadata
+      // This prevents MCP Jam from reloading the UI on every call
+      const response = await callTool<{
+        data?: {
+          teams: Team[];
+          groups: Group[];
+          bracketTemplate: Bracket;
+          prediction: WorldCupPrediction;
+          playoffSlots?: Record<string, string[]>;
+        };
+        teams?: Team[];
+        groups?: Group[];
+        bracketTemplate?: Bracket;
+        prediction?: WorldCupPrediction;
+        playoffSlots?: Record<string, string[]>;
+      }>("worldcup.getDataForWidget", {});
+      
+      console.log("[WorldCup] Raw response:", response);
+      
+      // Handle different response shapes
+      const payload = response?.data ?? response;
+      
+      if (!payload) {
+        throw new Error("Empty response from worldcup.getInitialData");
+      }
+      
+      console.log("[WorldCup] Parsed payload:", payload);
+      
+      setTeams(payload.teams ?? []);
+      setGroups(payload.groups ?? []);
+      setBracketTemplate(payload.bracketTemplate ?? null);
+      setPrediction(payload.prediction ?? null);
+      setPlayoffSlots(payload.playoffSlots ?? {});
+      if (payload.prediction && payload.bracketTemplate) {
+        setResolvedBracket(resolveBracketLocally(payload.bracketTemplate, payload.prediction));
+      }
+    } catch (err) {
+      console.error("[WorldCup] Error loading data:", err);
+      setError((err as Error)?.message ?? "Failed to load initial data");
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const teamsById = useMemo(
     () =>
