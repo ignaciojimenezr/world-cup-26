@@ -225,21 +225,17 @@ const GroupSelector = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
-        <div>
-          <h1 className="text-xl sm:text-2xl font-semibold">Group Predictions</h1>
-          <p className="text-muted-foreground text-xs sm:text-sm">
-            Click teams: 1st → 2nd → 3rd → 4th
-          </p>
-        </div>
-        <div className="flex gap-2 flex-wrap">
-          <Button variant="outline" size="sm" onClick={autoGenerate}>
-            Auto
-          </Button>
-          <Button size="sm" disabled={!allComplete} onClick={onContinue}>
-            Continue →
-          </Button>
-        </div>
+      <div className="text-center">
+        <h1 className="text-xl sm:text-2xl font-semibold">Group Predictions</h1>
+      </div>
+      
+      <div className="flex justify-center gap-2">
+        <Button variant="outline" size="sm" onClick={autoGenerate}>
+          Auto Generate
+        </Button>
+        <Button size="sm" disabled={!allComplete} onClick={onContinue} className={allComplete ? "bg-green-600 hover:bg-green-700" : ""}>
+          Continue →
+        </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
@@ -400,6 +396,13 @@ const GroupSelector = ({
           </div>
         </DialogContent>
       </Dialog>
+
+      {/* Continue button at bottom */}
+      <div className="flex justify-center pt-4">
+        <Button size="lg" disabled={!allComplete} onClick={onContinue} className={allComplete ? "bg-green-600 hover:bg-green-700" : ""}>
+          Continue →
+        </Button>
+      </div>
     </div>
   );
 };

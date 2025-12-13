@@ -72,10 +72,10 @@ const ThirdPlaceSelector = ({
       {/* Navigation at bottom */}
       <div className="flex justify-center gap-3 pt-4">
         <Button variant="outline" onClick={onBack}>
-          ← Back to Groups
+          ← Back
         </Button>
         <Button disabled={!ready} onClick={onContinue} className={ready ? "bg-green-600 hover:bg-green-700" : ""}>
-          Continue to Bracket →
+          Continue →
         </Button>
       </div>
     </div>

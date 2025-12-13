@@ -57,21 +57,44 @@ const teamDisplay = (
   return { flag: t.flagEmoji ?? "🏳️", name: t.shortName ?? t.name, hasTeam: true };
 };
 
+// Find next round match that this match feeds into
+const getNextMatch = (matchId: string, bracket: ResolvedBracket): ResolvedMatch | undefined => {
+  return bracket.matches.find(m => {
+    const homeSource = m.homeSlot.source;
+    const awaySource = m.awaySlot.source;
+    return (homeSource?.type === "winner-of-match" && homeSource.matchId === matchId) ||
+           (awaySource?.type === "winner-of-match" && awaySource.matchId === matchId);
+  });
+};
+
+// Check if next match has both teams determined
+const isNextMatchReady = (nextMatch: ResolvedMatch): boolean => {
+  return Boolean(nextMatch.homeTeamId && nextMatch.awayTeamId);
+};
+
 const MatchCard = ({
   match,
   teamsById,
   prediction,
   onWinnerChange,
+  bracket,
+  index,
+  total,
 }: {
   match: ResolvedMatch;
   teamsById: Record<TeamId, Team>;
   prediction: WorldCupPrediction;
   onWinnerChange: (matchId: string, teamId: TeamId) => void;
+  bracket: ResolvedBracket;
+  index: number;
+  total: number;
 }) => {
   const winner = prediction.knockout.winnersByMatchId[match.id];
   const home = teamDisplay(match.homeTeamId, teamsById);
   const away = teamDisplay(match.awayTeamId, teamsById);
   const bothTeamsReady = home.hasTeam && away.hasTeam;
+  const nextMatch = getNextMatch(match.id, bracket);
+  const winnerTeam = winner ? teamsById[winner] : undefined;
 
   const TeamButton = ({ teamId, flag, name, hasTeam }: { 
     teamId?: TeamId; flag: string; name: string; hasTeam: boolean 
@@ -84,16 +107,16 @@ const MatchCard = ({
         onClick={() => teamId && canPick && onWinnerChange(match.id, teamId)}
         disabled={!canPick}
         className={cn(
-          "flex items-center gap-2 px-3 py-2 rounded-lg transition-all w-full",
+          "flex items-center gap-1 px-1.5 py-0.5 rounded transition-all w-full text-[10px]",
           isWinner && "bg-green-600 text-white",
           !isWinner && hasTeam && canPick && "bg-slate-700 hover:bg-slate-600 cursor-pointer",
           !isWinner && hasTeam && !canPick && "bg-slate-800 text-slate-400",
           !hasTeam && "bg-slate-800/50 text-slate-500 italic"
         )}
       >
-        <span className="text-lg">{flag}</span>
-        <span className="font-medium text-sm">{name}</span>
-        {isWinner && <span className="ml-auto">✓</span>}
+        <span className="text-xs">{flag}</span>
+        <span className="font-medium flex-1 truncate text-[10px]">{name}</span>
+        {isWinner && <span className="text-[9px]">✓</span>}
       </button>
     );
   };
@@ -103,20 +126,22 @@ const MatchCard = ({
       layout
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-slate-900 rounded-xl p-3 border border-slate-700 w-full max-w-[280px]"
+      className="bg-slate-900 rounded-lg p-1.5 border border-slate-700 w-[110px] flex-shrink-0"
     >
-      <div className="text-xs text-slate-500 mb-2 flex justify-between">
-        <span className="font-semibold">{match.id}</span>
-        {match.metadata?.city && <span>{match.metadata.city}</span>}
+      <div className="text-[10px] text-slate-500 mb-0.5 flex justify-between">
+        <span className="font-semibold text-[9px]">{match.id}</span>
+        {match.metadata?.city && <span className="text-[9px] truncate max-w-[40px]">{match.metadata.city}</span>}
       </div>
-      <div className="space-y-2">
+      <div className="space-y-0.5">
         <TeamButton teamId={match.homeTeamId} {...home} />
-        <div className="text-center text-xs text-slate-600">vs</div>
+        <div className="text-center text-[9px] text-slate-600">vs</div>
         <TeamButton teamId={match.awayTeamId} {...away} />
       </div>
     </motion.div>
   );
 };
+
+type BracketHalf = "left" | "right";
 
 const RoundSection = ({
   round,
@@ -124,12 +149,18 @@ const RoundSection = ({
   teamsById,
   prediction,
   onWinnerChange,
+  bracketHalf,
+  onBracketHalfChange,
+  bracket,
 }: {
   round: KnockoutRound;
   matches: ResolvedMatch[];
   teamsById: Record<TeamId, Team>;
   prediction: WorldCupPrediction;
   onWinnerChange: (matchId: string, teamId: TeamId) => void;
+  bracketHalf: BracketHalf;
+  onBracketHalfChange: (half: BracketHalf) => void;
+  bracket: ResolvedBracket;
 }) => {
   const leftMatches = matches.filter(m => isLeftHalf(m.id));
   const rightMatches = matches.filter(m => !isLeftHalf(m.id));
@@ -140,6 +171,41 @@ const RoundSection = ({
   // Count completed picks
   const completedCount = matches.filter(m => prediction.knockout.winnersByMatchId[m.id]).length;
   const allComplete = completedCount === matches.length;
+
+  // Get matches for current bracket half
+  const currentMatches = bracketHalf === "left" ? leftMatches : rightMatches;
+  const leftComplete = leftMatches.filter(m => prediction.knockout.winnersByMatchId[m.id]).length === leftMatches.length;
+  const rightComplete = rightMatches.filter(m => prediction.knockout.winnersByMatchId[m.id]).length === rightMatches.length;
+
+  if (isCenterOnly) {
+    return (
+      <div className="space-y-4">
+        <div className="flex items-center justify-center gap-3">
+          <h3 className="text-lg font-bold text-center">{roundLabels[round]}</h3>
+          <span className={cn(
+            "text-xs px-2 py-0.5 rounded-full",
+            allComplete ? "bg-green-600 text-white" : "bg-slate-700 text-slate-300"
+          )}>
+            {completedCount}/{matches.length}
+          </span>
+        </div>
+        <div className="flex justify-center">
+          {matches.map((match, idx) => (
+            <MatchCard
+              key={match.id}
+              match={match}
+              teamsById={teamsById}
+              prediction={prediction}
+              onWinnerChange={onWinnerChange}
+              bracket={bracket}
+              index={idx}
+              total={matches.length}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-4">
@@ -153,61 +219,137 @@ const RoundSection = ({
         </span>
       </div>
 
-      {isCenterOnly ? (
-        <div className="flex justify-center">
-          {matches.map(match => (
-            <MatchCard
-              key={match.id}
-              match={match}
-              teamsById={teamsById}
-              prediction={prediction}
-              onWinnerChange={onWinnerChange}
-            />
-          ))}
-        </div>
-      ) : (
-        <div className="space-y-6">
-          {/* Left Half */}
-          {leftMatches.length > 0 && (
-            <div>
-              <div className="text-xs text-slate-500 text-center mb-2">
-                Bracket A ({round === "R32" ? "M1-M8" : round === "R16" ? "M1-M4" : round === "QF" ? "M1-M2" : "M1"})
-              </div>
-              <div className="flex flex-wrap justify-center gap-3">
-                {leftMatches.map(match => (
-                  <MatchCard
-                    key={match.id}
-                    match={match}
-                    teamsById={teamsById}
-                    prediction={prediction}
-                    onWinnerChange={onWinnerChange}
-                  />
-                ))}
-              </div>
-            </div>
-          )}
+      <div className="text-center mb-4">
+        <p className="text-sm text-slate-400 font-medium">
+          {bracketHalf === "left" ? "Left bracket:" : "Right bracket:"}
+        </p>
+      </div>
 
-          {/* Right Half */}
-          {rightMatches.length > 0 && (
-            <div>
-              <div className="text-xs text-slate-500 text-center mb-2">
-                Bracket B ({round === "R32" ? "M9-M16" : round === "R16" ? "M5-M8" : round === "QF" ? "M3-M4" : "M2"})
-              </div>
-              <div className="flex flex-wrap justify-center gap-3">
-                {rightMatches.map(match => (
+      <div className="flex flex-col gap-4 pb-4">
+        {/* Group matches in pairs and show next match card with proper bracket lines */}
+        {Array.from({ length: Math.ceil(currentMatches.length / 2) }, (_, pairIdx) => {
+          const match1 = currentMatches[pairIdx * 2];
+          const match2 = currentMatches[pairIdx * 2 + 1];
+          const nextMatch1 = match1 ? getNextMatch(match1.id, bracket) : undefined;
+          const nextMatch2 = match2 ? getNextMatch(match2.id, bracket) : undefined;
+          // Both matches should feed into the same next match
+          const nextMatch = nextMatch1 || nextMatch2;
+          const bothReady = nextMatch && isNextMatchReady(nextMatch);
+          
+          // For left bracket: R32 on left, R16 on right
+          // For right bracket: R32 on right, R16 on left
+          const isLeftBracket = bracketHalf === "left";
+
+          // Get winner positions for each match
+          const winner1 = match1 ? prediction.knockout.winnersByMatchId[match1.id] : undefined;
+          const winner2 = match2 ? prediction.knockout.winnersByMatchId[match2.id] : undefined;
+          const isWinner1Home = match1 && winner1 === match1.homeTeamId;
+          const isWinner2Home = match2 && winner2 === match2.homeTeamId;
+          
+          // Match card dimensions (thinner cards)
+          const cardHeight = 70; // Approximate card height
+          const cardGap = 8; // gap-2 = 8px
+          const match1Top = 0;
+          const match2Top = cardHeight + cardGap;
+          
+          // Winner button positions relative to their card top
+          const homeButtonCenter = 22; // Home button center within card
+          const awayButtonCenter = 37; // Away button center within card
+          const match1WinnerY = match1 ? (isWinner1Home ? match1Top + homeButtonCenter : match1Top + awayButtonCenter) : 0;
+          const match2WinnerY = match2 ? (isWinner2Home ? match2Top + homeButtonCenter : match2Top + awayButtonCenter) : 0;
+          
+          // Next match card center position (centered between the two matches)
+          const nextMatchCenterY = (match1Top + match2Top + cardHeight) / 2;
+          const nextMatchHomeY = nextMatchCenterY - 7.5; // Home team position in next match
+          const nextMatchAwayY = nextMatchCenterY + 7.5; // Away team position in next match
+
+          return (
+            <div key={pairIdx} className={`flex items-center ${isLeftBracket ? 'flex-row' : 'flex-row-reverse'} justify-center gap-2`}>
+              {/* R32 Matches Column */}
+              <div className="flex flex-col gap-2 relative">
+                {match1 && (
                   <MatchCard
-                    key={match.id}
-                    match={match}
+                    match={match1}
                     teamsById={teamsById}
                     prediction={prediction}
                     onWinnerChange={onWinnerChange}
+                    bracket={bracket}
+                    index={pairIdx * 2}
+                    total={currentMatches.length}
                   />
-                ))}
+                )}
+                {match2 && (
+                  <MatchCard
+                    match={match2}
+                    teamsById={teamsById}
+                    prediction={prediction}
+                    onWinnerChange={onWinnerChange}
+                    bracket={bracket}
+                    index={pairIdx * 2 + 1}
+                    total={currentMatches.length}
+                  />
+                )}
               </div>
+              
+              {/* Bracket connector lines - proper tournament bracket style */}
+              {nextMatch && match1 && match2 && winner1 && winner2 && (
+                <div className="relative" style={{ width: '50px', height: `${match2Top + cardHeight}px` }}>
+                  <svg className="absolute inset-0 w-full h-full" style={{ pointerEvents: 'none', overflow: 'visible' }}>
+                    {/* Line from match1 winner: horizontal right → vertical down to center → horizontal right to next match */}
+                    <path
+                      d={`M ${isLeftBracket ? '0' : '50'},${match1WinnerY} 
+                          L ${isLeftBracket ? '25' : '25'},${match1WinnerY} 
+                          L ${isLeftBracket ? '25' : '25'},${nextMatchHomeY} 
+                          L ${isLeftBracket ? '50' : '0'},${nextMatchHomeY}`}
+                      stroke="#64748b"
+                      strokeWidth="2"
+                      fill="none"
+                    />
+                    {/* Line from match2 winner: horizontal right → vertical up to center → horizontal right to next match */}
+                    <path
+                      d={`M ${isLeftBracket ? '0' : '50'},${match2WinnerY} 
+                          L ${isLeftBracket ? '25' : '25'},${match2WinnerY} 
+                          L ${isLeftBracket ? '25' : '25'},${nextMatchAwayY} 
+                          L ${isLeftBracket ? '50' : '0'},${nextMatchAwayY}`}
+                      stroke="#64748b"
+                      strokeWidth="2"
+                      fill="none"
+                    />
+                  </svg>
+                </div>
+              )}
+              
+              {/* R16 Match Card - centered vertically between the two matches */}
+              {nextMatch && bothReady ? (
+                <motion.div
+                  initial={{ opacity: 0, x: isLeftBracket ? 20 : -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  className="bg-slate-800 rounded-lg p-1.5 border border-slate-600 w-[110px] flex-shrink-0 self-center"
+                >
+                  <div className="text-[10px] text-slate-400 mb-0.5 flex justify-between">
+                    <span className="font-semibold text-[9px]">{nextMatch.id}</span>
+                    {nextMatch.metadata?.city && <span className="text-[9px] truncate max-w-[40px]">{nextMatch.metadata.city}</span>}
+                  </div>
+                  <div className="space-y-0.5">
+                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-700/50 text-[10px]">
+                      <span className="text-xs">{teamDisplay(nextMatch.homeTeamId, teamsById).flag}</span>
+                      <span className="font-medium flex-1 truncate text-[10px]">{teamDisplay(nextMatch.homeTeamId, teamsById).name}</span>
+                    </div>
+                    <div className="text-center text-[9px] text-slate-500">vs</div>
+                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-700/50 text-[10px]">
+                      <span className="text-xs">{teamDisplay(nextMatch.awayTeamId, teamsById).flag}</span>
+                      <span className="font-medium flex-1 truncate text-[10px]">{teamDisplay(nextMatch.awayTeamId, teamsById).name}</span>
+                    </div>
+                  </div>
+                </motion.div>
+              ) : (
+                <div className="w-[110px]" /> // Spacer to maintain layout
+              )}
             </div>
-          )}
-        </div>
-      )}
+          );
+        })}
+      </div>
+
     </div>
   );
 };
@@ -221,6 +363,28 @@ const BracketView = ({
   onBack,
 }: BracketViewProps) => {
   const [activeRound, setActiveRound] = useState<KnockoutRound>("R32");
+  const [bracketHalf, setBracketHalf] = useState<BracketHalf>("left");
+  // Track last active bracket half for each round
+  const [lastBracketHalf, setLastBracketHalf] = useState<Record<KnockoutRound, BracketHalf>>({
+    R32: "left",
+    R16: "left",
+    QF: "left",
+    SF: "left",
+    F: "left",
+    "3P": "left",
+  });
+
+  // When bracket half changes, remember it for this round
+  const handleBracketHalfChange = (half: BracketHalf) => {
+    setBracketHalf(half);
+    setLastBracketHalf(prev => ({ ...prev, [activeRound]: half }));
+  };
+
+  // When round changes, restore to last active bracket half for that round
+  const handleRoundChange = (round: KnockoutRound) => {
+    setActiveRound(round);
+    setBracketHalf(lastBracketHalf[round]);
+  };
 
   // Get matches for active round
   const activeMatches = bracket.matches.filter(m => m.round === activeRound);
@@ -241,19 +405,14 @@ const BracketView = ({
 
   return (
     <div className="space-y-4">
-      {/* Header with champion display */}
-      <div className="text-center">
-        <h2 className="text-xl font-bold mb-1">🏆 Knockout Bracket</h2>
-        {champion ? (
-          <div className="text-lg">
-            <span className="text-yellow-400 font-semibold">Champion: </span>
-            <span className="text-2xl">{champion.flagEmoji}</span>
-            <span className="ml-1 font-bold">{champion.name}</span>
-          </div>
-        ) : (
-          <p className="text-sm text-slate-500">{roundLabels[activeRound]} - Pick winners to advance</p>
-        )}
-      </div>
+      {/* Champion display only */}
+      {champion && (
+        <div className="text-center text-lg">
+          <span className="text-yellow-400 font-semibold">Champion: </span>
+          <span className="text-2xl">{champion.flagEmoji}</span>
+          <span className="ml-1 font-bold">{champion.name}</span>
+        </div>
+      )}
 
       {/* Active round matches */}
       <RoundSection
@@ -262,62 +421,106 @@ const BracketView = ({
         teamsById={teamsById}
         prediction={prediction}
         onWinnerChange={onWinnerChange}
+        bracketHalf={bracketHalf}
+        onBracketHalfChange={handleBracketHalfChange}
+        bracket={bracket}
       />
 
       {/* Navigation Buttons */}
       <div className="flex flex-wrap justify-center gap-3 pt-4">
-        {/* Back button - go to previous round or third place */}
-        {(() => {
-          const currentIndex = roundOrder.indexOf(activeRound);
-          if (currentIndex > 0) {
-            const prevRound = roundOrder[currentIndex - 1];
-            return (
-              <Button variant="outline" onClick={() => setActiveRound(prevRound)}>
-                ← Back to {roundLabels[prevRound]}
-              </Button>
-            );
-          }
-          return (
-            <Button variant="outline" onClick={onBack}>
-              ← Back to Third Place
-            </Button>
-          );
-        })()}
+        {/* Back button */}
+        <Button 
+          variant="outline" 
+          onClick={() => {
+            const leftMatches = activeMatches.filter(m => isLeftHalf(m.id));
+            const rightMatches = activeMatches.filter(m => !isLeftHalf(m.id));
+            const hasBothHalves = leftMatches.length > 0 && rightMatches.length > 0;
+            
+            // If on right bracket and round has both halves, go back to left bracket
+            if (bracketHalf === "right" && hasBothHalves && activeRound !== "F" && activeRound !== "3P") {
+              handleBracketHalfChange("left");
+            } else {
+              // Go to previous round - will restore to last active bracket half for that round
+              const currentIndex = roundOrder.indexOf(activeRound);
+              if (currentIndex > 0) {
+                const prevRound = roundOrder[currentIndex - 1];
+                handleRoundChange(prevRound);
+              } else {
+                onBack();
+              }
+            }
+          }}
+        >
+          ← Back
+        </Button>
         
-        {/* Continue to next round */}
+        {/* Continue button - always show when there's a valid next step */}
         {(() => {
           const { completed, total } = getCompletedCount(activeRound);
           const isComplete = completed === total && total > 0;
           const currentIndex = roundOrder.indexOf(activeRound);
           const nextRound = currentIndex < roundOrder.length - 1 ? roundOrder[currentIndex + 1] : null;
           
-          if (isComplete && nextRound) {
-            return (
-              <Button 
-                onClick={() => setActiveRound(nextRound)}
-                className="bg-green-600 hover:bg-green-700"
-              >
-                Continue to {roundLabels[nextRound]} →
-              </Button>
-            );
-          }
-          return null;
-        })()}
-
-        {/* Show Save when all rounds complete */}
-        {(() => {
-          const allComplete = roundOrder.every(round => {
-            const { completed, total } = getCompletedCount(round);
-            return completed === total && total > 0;
-          });
+          // For rounds with left/right brackets
+          const leftMatches = activeMatches.filter(m => isLeftHalf(m.id));
+          const rightMatches = activeMatches.filter(m => !isLeftHalf(m.id));
+          const hasBothHalves = leftMatches.length > 0 && rightMatches.length > 0;
           
-          if (allComplete) {
-            return (
-              <Button onClick={onSave} className="bg-yellow-600 hover:bg-yellow-700">
-                💾 Save Prediction
-              </Button>
-            );
+          if (hasBothHalves && activeRound !== "F" && activeRound !== "3P") {
+            const leftComplete = leftMatches.filter(m => prediction.knockout.winnersByMatchId[m.id]).length === leftMatches.length;
+            const rightComplete = rightMatches.filter(m => prediction.knockout.winnersByMatchId[m.id]).length === rightMatches.length;
+            
+            // If on left bracket and left is complete, can continue to right bracket
+            if (bracketHalf === "left" && leftComplete && rightMatches.length > 0) {
+              return (
+                <Button 
+                  onClick={() => handleBracketHalfChange("right")}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  Continue →
+                </Button>
+              );
+            }
+            
+            // If on right bracket or both halves are complete, can continue to next round
+            if ((bracketHalf === "right" || (bracketHalf === "left" && leftComplete && rightComplete)) && leftComplete && rightComplete && isComplete && nextRound) {
+              return (
+                <Button 
+                  onClick={() => handleRoundChange(nextRound)}
+                  className="bg-green-600 hover:bg-green-700"
+                >
+                  Continue →
+                </Button>
+              );
+            }
+            
+            // If there's a next round, always show Continue (even if not complete)
+            if (nextRound) {
+              return (
+                <Button 
+                  onClick={() => handleRoundChange(nextRound)}
+                  className="bg-green-600 hover:bg-green-700"
+                  disabled={!isComplete}
+                >
+                  Continue →
+                </Button>
+              );
+            }
+          } else {
+            // Single bracket or center-only rounds - always show Continue if there's a next round
+            if (nextRound) {
+              return (
+                <Button 
+                  onClick={() => handleRoundChange(nextRound)}
+                  className="bg-green-600 hover:bg-green-700"
+                  disabled={!isComplete}
+                >
+                  Continue →
+                </Button>
+              );
+            }
           }
+          
           return null;
         })()}
       </div>
