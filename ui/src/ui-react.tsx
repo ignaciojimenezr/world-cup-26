@@ -30,9 +30,9 @@ const dependentMatches = (matchId: string, bracket?: Bracket) => {
   return bracket.matches.filter((m) => {
     const homeSource = m.homeSlot.source;
     const awaySource = m.awaySlot.source;
-    const homeDep = (homeSource?.type === "winner-of-match" || homeSource?.type === "loser-of-match") 
+    const homeDep = homeSource?.type === "winner-of-match" 
       && homeSource.matchId === matchId;
-    const awayDep = (awaySource?.type === "winner-of-match" || awaySource?.type === "loser-of-match")
+    const awayDep = awaySource?.type === "winner-of-match"
       && awaySource.matchId === matchId;
     return homeDep || awayDep;
   });

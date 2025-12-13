@@ -31,24 +31,6 @@ const resolveSource = (
       return prediction.thirdPlaceSelection.advancingThirdPlaceTeamIds[source.rankIndex];
     case "winner-of-match":
       return prediction.knockout.winnersByMatchId[source.matchId];
-    case "loser-of-match": {
-      // Find the match and get the team that didn't win
-      const match = template.matches.find(m => m.id === source.matchId);
-      const winnerId = prediction.knockout.winnersByMatchId[source.matchId];
-      if (!match || !winnerId) return undefined;
-      
-      const homeTeamId = match.homeSlot.source 
-        ? resolveSource(match.homeSlot.source, prediction, template)
-        : undefined;
-      const awayTeamId = match.awaySlot.source
-        ? resolveSource(match.awaySlot.source, prediction, template)
-        : undefined;
-      
-      // The loser is the team that didn't win
-      if (homeTeamId === winnerId) return awayTeamId;
-      if (awayTeamId === winnerId) return homeTeamId;
-      return undefined;
-    }
     default:
       return undefined;
   }

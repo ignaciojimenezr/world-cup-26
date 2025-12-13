@@ -11,14 +11,13 @@ import {
 import { Button } from "./ui/button";
 import { cn } from "../lib/utils";
 
-const roundOrder: KnockoutRound[] = ["R32", "R16", "QF", "SF", "F", "3P"];
+const roundOrder: KnockoutRound[] = ["R32", "R16", "QF", "SF", "F"];
 const roundLabels: Record<KnockoutRound, string> = {
   R32: "Round of 32",
   R16: "Round of 16",
   QF: "Quarterfinals",
   SF: "Semifinals",
   F: "Final",
-  "3P": "3rd Place",
 };
 
 // Split matches into left/right halves for display
@@ -165,8 +164,11 @@ const RoundSection = ({
   const leftMatches = matches.filter(m => isLeftHalf(m.id));
   const rightMatches = matches.filter(m => !isLeftHalf(m.id));
   
-  // For Final and 3rd Place, just center them
-  const isCenterOnly = round === "F" || round === "3P";
+  // For Final, center it
+  const isCenterOnly = round === "F";
+  
+  // Special handling for Semifinals - show both brackets side by side with final above
+  const isSemifinals = round === "SF";
   
   // Count completed picks
   const completedCount = matches.filter(m => prediction.knockout.winnersByMatchId[m.id]).length;
@@ -176,6 +178,145 @@ const RoundSection = ({
   const currentMatches = bracketHalf === "left" ? leftMatches : rightMatches;
   const leftComplete = leftMatches.filter(m => prediction.knockout.winnersByMatchId[m.id]).length === leftMatches.length;
   const rightComplete = rightMatches.filter(m => prediction.knockout.winnersByMatchId[m.id]).length === rightMatches.length;
+
+  // Semifinals special layout: show final above, both brackets side by side below
+  if (isSemifinals) {
+    // Find matches by ID to ensure we get both, even if filtering fails
+    const leftMatch = leftMatches[0] || matches.find(m => m.id === "SF-M1");
+    const rightMatch = rightMatches[0] || matches.find(m => m.id === "SF-M2");
+    const finalMatch = bracket.matches.find(m => m.round === "F");
+    
+    const leftWinner = leftMatch ? prediction.knockout.winnersByMatchId[leftMatch.id] : undefined;
+    const rightWinner = rightMatch ? prediction.knockout.winnersByMatchId[rightMatch.id] : undefined;
+    const bothSemifinalsComplete = leftWinner && rightWinner;
+    const finalWinner = finalMatch ? prediction.knockout.winnersByMatchId[finalMatch.id] : undefined;
+    
+    // Determine title: "Semifinals" -> "Finals" -> "Champion"
+    let title = roundLabels[round];
+    if (bothSemifinalsComplete && !finalWinner) {
+      title = "Finals";
+    } else if (finalWinner) {
+      title = "Champion";
+    }
+    
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-center gap-3">
+          <h3 className="text-lg font-bold text-center">{title}</h3>
+          <span className={cn(
+            "text-xs px-2 py-0.5 rounded-full",
+            allComplete ? "bg-green-600 text-white" : "bg-slate-700 text-slate-300"
+          )}>
+            {completedCount}/{matches.length}
+          </span>
+        </div>
+        
+        {/* Final match displayed above */}
+        {finalMatch && (
+          <div className="flex flex-col items-center gap-2">
+            <div className="text-xs text-slate-400 font-medium">Final</div>
+            <div className="bg-slate-800 rounded-lg p-1.5 border border-slate-600 w-[110px]">
+              <div className="text-[10px] text-slate-400 mb-0.5 flex justify-between">
+                <span className="font-semibold text-[9px]">{finalMatch.id}</span>
+                {finalMatch.metadata?.city && <span className="text-[9px] truncate max-w-[40px]">{finalMatch.metadata.city}</span>}
+              </div>
+              <div className="space-y-0.5">
+                <div className={cn(
+                  "flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px]",
+                  leftWinner ? "bg-slate-700/50" : "bg-slate-800/30 opacity-50"
+                )}>
+                  <span className="text-xs">{teamDisplay(leftWinner, teamsById).flag}</span>
+                  <span className="font-medium flex-1 truncate text-[10px]">{teamDisplay(leftWinner, teamsById).name}</span>
+                </div>
+                <div className="text-center text-[9px] text-slate-500">vs</div>
+                <div className={cn(
+                  "flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px]",
+                  rightWinner ? "bg-slate-700/50" : "bg-slate-800/30 opacity-50"
+                )}>
+                  <span className="text-xs">{teamDisplay(rightWinner, teamsById).flag}</span>
+                  <span className="font-medium flex-1 truncate text-[10px]">{teamDisplay(rightWinner, teamsById).name}</span>
+                </div>
+              </div>
+            </div>
+            {/* Lines connecting to semifinals */}
+            {bothSemifinalsComplete && (
+              <div className="relative w-full flex justify-center">
+                <svg className="absolute" width="300" height="40" style={{ pointerEvents: 'none', overflow: 'visible' }}>
+                  <path
+                    d="M 150,0 L 150,20 M 150,20 L 75,20 M 150,20 L 225,20"
+                    stroke="#64748b"
+                    strokeWidth="2"
+                    fill="none"
+                  />
+                </svg>
+              </div>
+            )}
+          </div>
+        )}
+        
+        {/* Both semifinal matches side by side */}
+        <div className="flex flex-wrap justify-center gap-8">
+          {/* Left bracket */}
+          <div className="flex flex-col items-center gap-2">
+            <div className="text-xs text-slate-400 font-medium">Left bracket</div>
+            {leftMatch && (
+              <MatchCard
+                match={leftMatch}
+                teamsById={teamsById}
+                prediction={prediction}
+                onWinnerChange={onWinnerChange}
+                bracket={bracket}
+                index={0}
+                total={1}
+              />
+            )}
+            {/* Line connecting to final */}
+            {leftWinner && finalMatch && (
+              <div className="relative w-full flex justify-center mt-2">
+                <svg className="absolute" width="120" height="30" style={{ pointerEvents: 'none', overflow: 'visible' }}>
+                  <path
+                    d="M 60,0 L 60,30"
+                    stroke="#64748b"
+                    strokeWidth="2"
+                    fill="none"
+                  />
+                </svg>
+              </div>
+            )}
+          </div>
+          
+          {/* Right bracket */}
+          <div className="flex flex-col items-center gap-2">
+            <div className="text-xs text-slate-400 font-medium">Right bracket</div>
+            {rightMatch && (
+              <MatchCard
+                match={rightMatch}
+                teamsById={teamsById}
+                prediction={prediction}
+                onWinnerChange={onWinnerChange}
+                bracket={bracket}
+                index={1}
+                total={1}
+              />
+            )}
+            {/* Line connecting to final */}
+            {rightWinner && finalMatch && (
+              <div className="relative w-full flex justify-center mt-2">
+                <svg className="absolute" width="120" height="30" style={{ pointerEvents: 'none', overflow: 'visible' }}>
+                  <path
+                    d="M 60,0 L 60,30"
+                    stroke="#64748b"
+                    strokeWidth="2"
+                    fill="none"
+                  />
+                </svg>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (isCenterOnly) {
     return (
@@ -189,7 +330,7 @@ const RoundSection = ({
             {completedCount}/{matches.length}
           </span>
         </div>
-        <div className="flex justify-center">
+        <div className="flex flex-wrap justify-center gap-4">
           {matches.map((match, idx) => (
             <MatchCard
               key={match.id}
@@ -371,7 +512,6 @@ const BracketView = ({
     QF: "left",
     SF: "left",
     F: "left",
-    "3P": "left",
   });
 
   // When bracket half changes, remember it for this round
@@ -389,11 +529,6 @@ const BracketView = ({
   // Get matches for active round
   const activeMatches = bracket.matches.filter(m => m.round === activeRound);
 
-  // Get the predicted champion
-  const final = bracket.matches.find(m => m.round === "F");
-  const finalWinnerId = final ? prediction.knockout.winnersByMatchId[final.id] : undefined;
-  const champion = finalWinnerId ? teamsById[finalWinnerId] : undefined;
-
   // Count completed by round
   const getCompletedCount = (round: KnockoutRound) => {
     const matches = bracket.matches.filter(m => m.round === round);
@@ -405,15 +540,6 @@ const BracketView = ({
 
   return (
     <div className="space-y-4">
-      {/* Champion display only */}
-      {champion && (
-        <div className="text-center text-lg">
-          <span className="text-yellow-400 font-semibold">Champion: </span>
-          <span className="text-2xl">{champion.flagEmoji}</span>
-          <span className="ml-1 font-bold">{champion.name}</span>
-        </div>
-      )}
-
       {/* Active round matches */}
       <RoundSection
         round={activeRound}
@@ -425,6 +551,49 @@ const BracketView = ({
         onBracketHalfChange={handleBracketHalfChange}
         bracket={bracket}
       />
+      
+      {/* If viewing semifinals, also allow picking final winner */}
+      {activeRound === "SF" && (() => {
+        const finalMatch = bracket.matches.find(m => m.round === "F");
+        const leftMatch = activeMatches.find(m => isLeftHalf(m.id));
+        const rightMatch = activeMatches.find(m => !isLeftHalf(m.id));
+        const leftWinner = leftMatch ? prediction.knockout.winnersByMatchId[leftMatch.id] : undefined;
+        const rightWinner = rightMatch ? prediction.knockout.winnersByMatchId[rightMatch.id] : undefined;
+        const finalWinner = finalMatch ? prediction.knockout.winnersByMatchId[finalMatch.id] : undefined;
+        
+        // Only show "Pick Final Winner" when both finalists are selected but no winner yet
+        if (!finalMatch || !leftWinner || !rightWinner || finalWinner) return null;
+        
+        return (
+          <div className="pt-4 border-t border-slate-700">
+            <div className="text-center text-sm text-slate-300 mb-2">Pick Final Winner:</div>
+            <div className="flex justify-center gap-2">
+              <button
+                onClick={() => onWinnerChange(finalMatch.id, leftWinner)}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                  prediction.knockout.winnersByMatchId[finalMatch.id] === leftWinner
+                    ? "bg-green-600 text-white"
+                    : "bg-slate-700 hover:bg-slate-600 text-slate-200"
+                )}
+              >
+                {teamsById[leftWinner]?.flagEmoji} {teamsById[leftWinner]?.shortName || teamsById[leftWinner]?.name}
+              </button>
+              <button
+                onClick={() => onWinnerChange(finalMatch.id, rightWinner)}
+                className={cn(
+                  "px-4 py-2 rounded-lg text-sm font-medium transition-all",
+                  prediction.knockout.winnersByMatchId[finalMatch.id] === rightWinner
+                    ? "bg-green-600 text-white"
+                    : "bg-slate-700 hover:bg-slate-600 text-slate-200"
+                )}
+              >
+                {teamsById[rightWinner]?.flagEmoji} {teamsById[rightWinner]?.shortName || teamsById[rightWinner]?.name}
+              </button>
+            </div>
+          </div>
+        );
+      })()}
 
       {/* Navigation Buttons */}
       <div className="flex flex-wrap justify-center gap-3 pt-4">
@@ -437,7 +606,7 @@ const BracketView = ({
             const hasBothHalves = leftMatches.length > 0 && rightMatches.length > 0;
             
             // If on right bracket and round has both halves, go back to left bracket
-            if (bracketHalf === "right" && hasBothHalves && activeRound !== "F" && activeRound !== "3P") {
+            if (bracketHalf === "right" && hasBothHalves && activeRound !== "F") {
               handleBracketHalfChange("left");
             } else {
               // Go to previous round - will restore to last active bracket half for that round
@@ -466,7 +635,7 @@ const BracketView = ({
           const rightMatches = activeMatches.filter(m => !isLeftHalf(m.id));
           const hasBothHalves = leftMatches.length > 0 && rightMatches.length > 0;
           
-          if (hasBothHalves && activeRound !== "F" && activeRound !== "3P") {
+          if (hasBothHalves && activeRound !== "F") {
             const leftComplete = leftMatches.filter(m => prediction.knockout.winnersByMatchId[m.id]).length === leftMatches.length;
             const rightComplete = rightMatches.filter(m => prediction.knockout.winnersByMatchId[m.id]).length === rightMatches.length;
             

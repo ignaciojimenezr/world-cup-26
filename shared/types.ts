@@ -39,7 +39,7 @@ export interface ThirdPlaceSelection {
   advancingThirdPlaceTeamIds: TeamId[]; // exactly 8
 }
 
-export type KnockoutRound = "R32" | "R16" | "QF" | "SF" | "F" | "3P";
+export type KnockoutRound = "R32" | "R16" | "QF" | "SF" | "F";
 
 export interface KnockoutSlotSource_GroupPosition {
   type: "group-position";
@@ -57,16 +57,10 @@ export interface KnockoutSlotSource_MatchWinner {
   matchId: string;
 }
 
-export interface KnockoutSlotSource_MatchLoser {
-  type: "loser-of-match";
-  matchId: string;
-}
-
 export type KnockoutSlotSource =
   | KnockoutSlotSource_GroupPosition
   | KnockoutSlotSource_ThirdRanked
-  | KnockoutSlotSource_MatchWinner
-  | KnockoutSlotSource_MatchLoser;
+  | KnockoutSlotSource_MatchWinner;
 
 export interface KnockoutSlot {
   id: string;

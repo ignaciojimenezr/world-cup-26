@@ -71,20 +71,6 @@ const resolveSource = (
     case "winner-of-match": {
       return prediction.knockout.winnersByMatchId[source.matchId];
     }
-    case "loser-of-match": {
-      // Find the match and get the team that didn't win
-      const match = bracketTemplate.matches.find(m => m.id === source.matchId);
-      const winnerId = prediction.knockout.winnersByMatchId[source.matchId];
-      if (!match || !winnerId) return undefined;
-      
-      const homeTeamId = resolveSource(match.homeSlot.source, prediction);
-      const awayTeamId = resolveSource(match.awaySlot.source, prediction);
-      
-      // The loser is the team that didn't win
-      if (homeTeamId === winnerId) return awayTeamId;
-      if (awayTeamId === winnerId) return homeTeamId;
-      return undefined;
-    }
     default:
       return undefined;
   }
