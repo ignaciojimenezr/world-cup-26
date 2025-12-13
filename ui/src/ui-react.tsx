@@ -16,9 +16,6 @@ import BracketView from "./components/BracketView";
 import MatchDetailsSheet from "./components/MatchDetailsSheet";
 import { resolveBracketLocally } from "./lib/bracket";
 import { callTool, getResourceUri, resize, isInMcpHost } from "./lib/mcp-app";
-import { Button } from "./components/ui/button";
-import { Card, CardContent } from "./components/ui/card";
-
 type View = "groups" | "third" | "bracket";
 
 const viewFromUri = (uri?: string): View => {
@@ -31,9 +28,13 @@ const viewFromUri = (uri?: string): View => {
 const dependentMatches = (matchId: string, bracket?: Bracket) => {
   if (!bracket) return [];
   return bracket.matches.filter((m) => {
-    const home = m.homeSlot.source?.type === "winner-of-match" && m.homeSlot.source.matchId === matchId;
-    const away = m.awaySlot.source?.type === "winner-of-match" && m.awaySlot.source.matchId === matchId;
-    return home || away;
+    const homeSource = m.homeSlot.source;
+    const awaySource = m.awaySlot.source;
+    const homeDep = (homeSource?.type === "winner-of-match" || homeSource?.type === "loser-of-match") 
+      && homeSource.matchId === matchId;
+    const awayDep = (awaySource?.type === "winner-of-match" || awaySource?.type === "loser-of-match")
+      && awaySource.matchId === matchId;
+    return homeDep || awayDep;
   });
 };
 
@@ -204,47 +205,49 @@ const WorldCupApp = () => {
     setPrediction((prev) => {
       if (!prev) return prev;
       const next = { ...prev, groups: nextGroups };
-      setBracketTemplate((bt) => {
-        if (bt) setResolvedBracket(resolveBracketLocally(bt, next));
-        return bt;
-      });
+      if (bracketTemplate) {
+        setResolvedBracket(resolveBracketLocally(bracketTemplate, next));
+      }
       return next;
     });
-  }, []);
+  }, [bracketTemplate]);
 
   const handleThirdChange = useCallback((third: ThirdPlaceSelection) => {
     setPrediction((prev) => {
       if (!prev) return prev;
       const next = { ...prev, thirdPlaceSelection: third };
-      setBracketTemplate((bt) => {
-        if (bt) setResolvedBracket(resolveBracketLocally(bt, next));
-        return bt;
-      });
+      if (bracketTemplate) {
+        setResolvedBracket(resolveBracketLocally(bracketTemplate, next));
+      }
       return next;
     });
-  }, []);
+  }, [bracketTemplate]);
 
   const handleWinnerChange = useCallback((matchId: string, teamId: TeamId) => {
     setPrediction((prev) => {
       if (!prev) return prev;
-      setBracketTemplate((bt) => {
-        const cleanedWinners = bt
-          ? pruneDownstreamWinners(matchId, bt, prev.knockout.winnersByMatchId)
-          : { ...prev.knockout.winnersByMatchId };
-        const next: WorldCupPrediction = {
-          ...prev,
-          knockout: {
-            ...prev.knockout,
-            winnersByMatchId: { ...cleanedWinners, [matchId]: teamId },
-          },
-        };
-        if (bt) setResolvedBracket(resolveBracketLocally(bt, next));
-        setPrediction(next);
-        return bt;
-      });
-      return prev;
+      
+      // Prune downstream winners when changing an upstream pick
+      const cleanedWinners = bracketTemplate
+        ? pruneDownstreamWinners(matchId, bracketTemplate, prev.knockout.winnersByMatchId)
+        : { ...prev.knockout.winnersByMatchId };
+      
+      const next: WorldCupPrediction = {
+        ...prev,
+        knockout: {
+          ...prev.knockout,
+          winnersByMatchId: { ...cleanedWinners, [matchId]: teamId },
+        },
+      };
+      
+      // Re-resolve the bracket with the new prediction
+      if (bracketTemplate) {
+        setResolvedBracket(resolveBracketLocally(bracketTemplate, next));
+      }
+      
+      return next;
     });
-  }, []);
+  }, [bracketTemplate]);
 
   const handleSave = async () => {
     if (!prediction) return;
@@ -301,37 +304,7 @@ const WorldCupApp = () => {
   }
 
   return (
-    <div className="p-4 space-y-4">
-      <Card>
-        <CardContent className="py-4 flex items-center gap-2 justify-between flex-wrap">
-          <div className="space-y-1">
-            <div className="text-lg font-semibold">World Cup 2026 Predictor</div>
-            <p className="text-sm text-muted-foreground">
-              Groups → third-place picks → knockout bracket
-            </p>
-          </div>
-          <div className="flex gap-2 flex-wrap">
-            <Button variant={view === "groups" ? "default" : "outline"} onClick={() => goTo("groups")}>
-              Groups
-            </Button>
-            <Button
-              variant={view === "third" ? "default" : "outline"}
-              onClick={() => goTo("third")}
-            >
-              Third place
-            </Button>
-            <Button
-              variant={view === "bracket" ? "default" : "outline"}
-              onClick={() => goTo("bracket")}
-            >
-              Bracket
-            </Button>
-            <Button variant="secondary" onClick={handleSave}>
-              Save prediction
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
+    <div className="p-3 sm:p-4 space-y-3 sm:space-y-4 min-h-full">
 
       {view === "groups" && (
         <GroupSelector
@@ -363,6 +336,8 @@ const WorldCupApp = () => {
             prediction={prediction}
             onWinnerChange={handleWinnerChange}
             onOpenMatch={(m) => setActiveMatch(m)}
+            onSave={handleSave}
+            onBack={() => goTo("third")}
           />
           <MatchDetailsSheet
             open={Boolean(activeMatch)}

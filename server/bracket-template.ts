@@ -371,8 +371,8 @@ const finals: Match[] = [
   {
     id: "3P-M1",
     round: "3P",
-    homeSlot: slot("3P-M1-H", "3P", "Semifinal Loser 1"),
-    awaySlot: slot("3P-M1-A", "3P", "Semifinal Loser 2"),
+    homeSlot: slot("3P-M1-H", "3P", "Loser SF-M1", { type: "loser-of-match", matchId: "SF-M1" }),
+    awaySlot: slot("3P-M1-A", "3P", "Loser SF-M2", { type: "loser-of-match", matchId: "SF-M2" }),
     metadata: { city: "Dallas", stadium: "AT&T Stadium", date: "2026-07-11" },
   },
 ];

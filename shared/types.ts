@@ -57,10 +57,16 @@ export interface KnockoutSlotSource_MatchWinner {
   matchId: string;
 }
 
+export interface KnockoutSlotSource_MatchLoser {
+  type: "loser-of-match";
+  matchId: string;
+}
+
 export type KnockoutSlotSource =
   | KnockoutSlotSource_GroupPosition
   | KnockoutSlotSource_ThirdRanked
-  | KnockoutSlotSource_MatchWinner;
+  | KnockoutSlotSource_MatchWinner
+  | KnockoutSlotSource_MatchLoser;
 
 export interface KnockoutSlot {
   id: string;

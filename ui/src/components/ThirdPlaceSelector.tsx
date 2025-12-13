@@ -36,21 +36,11 @@ const ThirdPlaceSelector = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h2 className="text-2xl font-semibold">Select advancing third-place teams</h2>
-          <p className="text-muted-foreground text-sm">
-            Pick exactly 8 of the 12 third-place finishers to advance. Selected {selectedCount}/8.
-          </p>
-        </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={onBack}>
-            Back to groups
-          </Button>
-          <Button disabled={!ready} onClick={onContinue}>
-            Continue to bracket
-          </Button>
-        </div>
+      <div className="text-center">
+        <h2 className="text-xl sm:text-2xl font-semibold">Select advancing third-place teams</h2>
+        <p className="text-muted-foreground text-sm">
+          Pick exactly 8 of the 12. Selected {selectedCount}/8.
+        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -77,6 +67,16 @@ const ThirdPlaceSelector = ({
             </Card>
           );
         })}
+      </div>
+
+      {/* Navigation at bottom */}
+      <div className="flex justify-center gap-3 pt-4">
+        <Button variant="outline" onClick={onBack}>
+          ← Back to Groups
+        </Button>
+        <Button disabled={!ready} onClick={onContinue} className={ready ? "bg-green-600 hover:bg-green-700" : ""}>
+          Continue to Bracket →
+        </Button>
       </div>
     </div>
   );

@@ -225,19 +225,19 @@ const GroupSelector = ({
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-4 flex-wrap">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 sm:gap-4">
         <div>
-          <h1 className="text-2xl font-semibold">Group Predictions</h1>
-          <p className="text-muted-foreground text-sm">
-            Click teams in order: 1st → 2nd → 3rd → 4th
+          <h1 className="text-xl sm:text-2xl font-semibold">Group Predictions</h1>
+          <p className="text-muted-foreground text-xs sm:text-sm">
+            Click teams: 1st → 2nd → 3rd → 4th
           </p>
         </div>
-        <div className="flex gap-2">
-          <Button variant="outline" onClick={autoGenerate}>
-            Auto Generate
+        <div className="flex gap-2 flex-wrap">
+          <Button variant="outline" size="sm" onClick={autoGenerate}>
+            Auto
           </Button>
-          <Button disabled={!allComplete} onClick={onContinue}>
-            Continue to Third Place →
+          <Button size="sm" disabled={!allComplete} onClick={onContinue}>
+            Continue →
           </Button>
         </div>
       </div>
