@@ -21,6 +21,9 @@ const roundLabels: Record<KnockoutRound, string> = {
 };
 
 // Split matches into left/right halves for display
+// Based on bracket images: LEFT has GER, USA, FRA, TUN, NED, MAR, COL, CRO, ESP, AUT
+// RIGHT has BRA, JPN, ECU, NOR, MEX, SCO, ENG, SEN, ARG, URU, EGY, SUI, ALG, POR, GHA
+// R16 structure: LEFT = M1, M2, M5, M6; RIGHT = M3, M4, M7, M8
 const isLeftHalf = (matchId: string): boolean => {
   const match = matchId.match(/(\w+)-M(\d+)/);
   if (!match) return true;
@@ -28,10 +31,20 @@ const isLeftHalf = (matchId: string): boolean => {
   const num = parseInt(numStr, 10);
   
   switch (round) {
-    case "R32": return num <= 8;
-    case "R16": return num <= 4;
-    case "QF": return num <= 2;
-    case "SF": return num === 1;
+    case "R32": 
+      // LEFT: M1, M3, M4, M6, M9-M12 (→ R16-M1, M2, M5, M6)
+      // RIGHT: M2, M5, M7-M8, M13-M16 (→ R16-M3, M4, M7, M8)
+      return num === 1 || num === 3 || num === 4 || num === 6 || (num >= 9 && num <= 12);
+    case "R16": 
+      // LEFT: M1, M2, M5, M6 (→ QF-M1, QF-M2 → SF-M1)
+      // RIGHT: M3, M4, M7, M8 (→ QF-M3, QF-M4 → SF-M2)
+      return num === 1 || num === 2 || (num >= 5 && num <= 6);
+    case "QF": 
+      // LEFT: M1, M2 (→ SF-M1)
+      // RIGHT: M3, M4 (→ SF-M2)
+      return num <= 2;
+    case "SF": 
+      return num === 1;
     default: return true;
   }
 };

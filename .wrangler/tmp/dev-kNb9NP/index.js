@@ -892,7 +892,7 @@ var r32 = [
     }),
     metadata: { city: "Houston", stadium: "NRG Stadium", date: "2026-06-13" }
   },
-  // Match 3: 1E vs 3ABCDF (E1 vs 3rd from ABCDF)
+  // Match 3: 1E vs 3ABCDF (E1 vs 3rd from ABCDF) - Pathway 1 Match 74
   {
     id: "R32-M3",
     round: "R32",
@@ -908,7 +908,7 @@ var r32 = [
     }),
     metadata: { city: "Boston", stadium: "Gillette Stadium", date: "2026-06-13" }
   },
-  // Match 4: 1F vs 2C (F1 vs C2)
+  // Match 4: 1F vs 2C (F1 vs C2) - Netherlands vs Morocco (C2 is Morocco)
   {
     id: "R32-M4",
     round: "R32",
@@ -940,7 +940,7 @@ var r32 = [
     }),
     metadata: { city: "Dallas", stadium: "AT&T Stadium", date: "2026-06-14" }
   },
-  // Match 6: 1I vs 3CDFGH (I1 vs 3rd from CDFGH)
+  // Match 6: 1I vs 3CDFGH (I1 vs 3rd from CDFGH) - Pathway 1 Match 77
   {
     id: "R32-M6",
     round: "R32",
@@ -1004,7 +1004,7 @@ var r32 = [
     }),
     metadata: { city: "Seattle", stadium: "Lumen Field", date: "2026-06-15" }
   },
-  // Match 10: 1D vs 3BEFIJ (D1 vs 3rd from BEFIJ)
+  // Match 10: 1D vs 3BEFIJ (D1 vs 3rd from BEFIJ) - Pathway 1 Match 81
   {
     id: "R32-M10",
     round: "R32",
@@ -1122,21 +1122,21 @@ var r16 = [
     id: "R16-M1",
     round: "R16",
     homeSlot: slot("R16-M1-H", "R16", "Winner R32-M1", { type: "winner-of-match", matchId: "R32-M1" }),
-    awaySlot: slot("R16-M1-A", "R16", "Winner R32-M2", { type: "winner-of-match", matchId: "R32-M2" }),
+    awaySlot: slot("R16-M1-A", "R16", "Winner R32-M3", { type: "winner-of-match", matchId: "R32-M3" }),
     metadata: { city: "Los Angeles", stadium: "SoFi Stadium", date: "2026-06-23" }
   },
   {
     id: "R16-M2",
     round: "R16",
-    homeSlot: slot("R16-M2-H", "R16", "Winner R32-M3", { type: "winner-of-match", matchId: "R32-M3" }),
-    awaySlot: slot("R16-M2-A", "R16", "Winner R32-M4", { type: "winner-of-match", matchId: "R32-M4" }),
+    homeSlot: slot("R16-M2-H", "R16", "Winner R32-M4", { type: "winner-of-match", matchId: "R32-M4" }),
+    awaySlot: slot("R16-M2-A", "R16", "Winner R32-M6", { type: "winner-of-match", matchId: "R32-M6" }),
     metadata: { city: "Mexico City", stadium: "Azteca", date: "2026-06-23" }
   },
   {
     id: "R16-M3",
     round: "R16",
-    homeSlot: slot("R16-M3-H", "R16", "Winner R32-M5", { type: "winner-of-match", matchId: "R32-M5" }),
-    awaySlot: slot("R16-M3-A", "R16", "Winner R32-M6", { type: "winner-of-match", matchId: "R32-M6" }),
+    homeSlot: slot("R16-M3-H", "R16", "Winner R32-M2", { type: "winner-of-match", matchId: "R32-M2" }),
+    awaySlot: slot("R16-M3-A", "R16", "Winner R32-M5", { type: "winner-of-match", matchId: "R32-M5" }),
     metadata: { city: "Atlanta", stadium: "Mercedes-Benz", date: "2026-06-24" }
   },
   {
@@ -1186,15 +1186,15 @@ var qf = [
   {
     id: "QF-M2",
     round: "QF",
-    homeSlot: slot("QF-M2-H", "QF", "Winner R16-M3", { type: "winner-of-match", matchId: "R16-M3" }),
-    awaySlot: slot("QF-M2-A", "QF", "Winner R16-M4", { type: "winner-of-match", matchId: "R16-M4" }),
+    homeSlot: slot("QF-M2-H", "QF", "Winner R16-M5", { type: "winner-of-match", matchId: "R16-M5" }),
+    awaySlot: slot("QF-M2-A", "QF", "Winner R16-M6", { type: "winner-of-match", matchId: "R16-M6" }),
     metadata: { city: "Miami", stadium: "Hard Rock Stadium", date: "2026-06-29" }
   },
   {
     id: "QF-M3",
     round: "QF",
-    homeSlot: slot("QF-M3-H", "QF", "Winner R16-M5", { type: "winner-of-match", matchId: "R16-M5" }),
-    awaySlot: slot("QF-M3-A", "QF", "Winner R16-M6", { type: "winner-of-match", matchId: "R16-M6" }),
+    homeSlot: slot("QF-M3-H", "QF", "Winner R16-M3", { type: "winner-of-match", matchId: "R16-M3" }),
+    awaySlot: slot("QF-M3-A", "QF", "Winner R16-M4", { type: "winner-of-match", matchId: "R16-M4" }),
     metadata: { city: "Philadelphia", stadium: "Lincoln Financial Field", date: "2026-06-30" }
   },
   {
@@ -1375,12 +1375,14 @@ var assignThirdPlaceTeams = /* @__PURE__ */ __name((prediction) => {
   for (const match of bracketTemplate.matches) {
     if (match.homeSlot.source?.type === "third-ranked" && match.homeSlot.source.groupCombination) {
       thirdPlaceSlots.push({
+        slotId: match.homeSlot.id,
         rankIndex: match.homeSlot.source.rankIndex,
         groupCombination: match.homeSlot.source.groupCombination
       });
     }
     if (match.awaySlot.source?.type === "third-ranked" && match.awaySlot.source.groupCombination) {
       thirdPlaceSlots.push({
+        slotId: match.awaySlot.id,
         rankIndex: match.awaySlot.source.rankIndex,
         groupCombination: match.awaySlot.source.groupCombination
       });
@@ -1395,13 +1397,13 @@ var assignThirdPlaceTeams = /* @__PURE__ */ __name((prediction) => {
     );
     if (teamIndex !== -1) {
       const team = available[teamIndex];
-      assignments.set(slot2.rankIndex, team.teamId);
+      assignments.set(slot2.slotId, team.teamId);
       available.splice(teamIndex, 1);
     }
   }
   return assignments;
 }, "assignThirdPlaceTeams");
-var resolveSource = /* @__PURE__ */ __name((source, prediction, thirdPlaceAssignments) => {
+var resolveSource = /* @__PURE__ */ __name((source, prediction, thirdPlaceAssignments, slotId) => {
   if (!source) return void 0;
   switch (source.type) {
     case "group-position": {
@@ -1409,10 +1411,10 @@ var resolveSource = /* @__PURE__ */ __name((source, prediction, thirdPlaceAssign
       return group?.positions[source.position];
     }
     case "third-ranked": {
-      if (!thirdPlaceAssignments) {
+      if (!thirdPlaceAssignments || !slotId) {
         return prediction.thirdPlaceSelection.advancingThirdPlaceTeamIds[source.rankIndex];
       }
-      return thirdPlaceAssignments.get(source.rankIndex);
+      return thirdPlaceAssignments.get(slotId);
     }
     case "winner-of-match":
       return prediction.knockout.winnersByMatchId[source.matchId];
@@ -1420,7 +1422,7 @@ var resolveSource = /* @__PURE__ */ __name((source, prediction, thirdPlaceAssign
       return void 0;
   }
 }, "resolveSource");
-var resolveSlotTeamId = /* @__PURE__ */ __name((slot2, prediction, thirdPlaceAssignments) => resolveSource(slot2.source, prediction, thirdPlaceAssignments), "resolveSlotTeamId");
+var resolveSlotTeamId = /* @__PURE__ */ __name((slot2, prediction, thirdPlaceAssignments) => resolveSource(slot2.source, prediction, thirdPlaceAssignments, slot2.id), "resolveSlotTeamId");
 var resolveBracket = /* @__PURE__ */ __name((prediction) => {
   const thirdPlaceAssignments = assignThirdPlaceTeams(prediction);
   const matches = bracketTemplate.matches.map((match) => ({
@@ -1806,7 +1808,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env2, _ctx, middlewareCtx
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-Ykn4Me/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-JE3LTp/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -1838,7 +1840,7 @@ function __facade_invoke__(request, env2, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-Ykn4Me/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-JE3LTp/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

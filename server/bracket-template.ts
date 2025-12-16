@@ -51,7 +51,7 @@ const r32: Match[] = [
     }),
     metadata: { city: "Houston", stadium: "NRG Stadium", date: "2026-06-13" },
   },
-  // Match 3: 1E vs 3ABCDF (E1 vs 3rd from ABCDF)
+  // Match 3: 1E vs 3ABCDF (E1 vs 3rd from ABCDF) - Pathway 1 Match 74
   {
     id: "R32-M3",
     round: "R32",
@@ -67,7 +67,7 @@ const r32: Match[] = [
     }),
     metadata: { city: "Boston", stadium: "Gillette Stadium", date: "2026-06-13" },
   },
-  // Match 4: 1F vs 2C (F1 vs C2)
+  // Match 4: 1F vs 2C (F1 vs C2) - Netherlands vs Morocco (C2 is Morocco)
   {
     id: "R32-M4",
     round: "R32",
@@ -99,7 +99,7 @@ const r32: Match[] = [
     }),
     metadata: { city: "Dallas", stadium: "AT&T Stadium", date: "2026-06-14" },
   },
-  // Match 6: 1I vs 3CDFGH (I1 vs 3rd from CDFGH)
+  // Match 6: 1I vs 3CDFGH (I1 vs 3rd from CDFGH) - Pathway 1 Match 77
   {
     id: "R32-M6",
     round: "R32",
@@ -163,7 +163,7 @@ const r32: Match[] = [
     }),
     metadata: { city: "Seattle", stadium: "Lumen Field", date: "2026-06-15" },
   },
-  // Match 10: 1D vs 3BEFIJ (D1 vs 3rd from BEFIJ)
+  // Match 10: 1D vs 3BEFIJ (D1 vs 3rd from BEFIJ) - Pathway 1 Match 81
   {
     id: "R32-M10",
     round: "R32",
@@ -282,21 +282,21 @@ const r16: Match[] = [
     id: "R16-M1",
     round: "R16",
     homeSlot: slot("R16-M1-H", "R16", "Winner R32-M1", { type: "winner-of-match", matchId: "R32-M1" }),
-    awaySlot: slot("R16-M1-A", "R16", "Winner R32-M2", { type: "winner-of-match", matchId: "R32-M2" }),
+    awaySlot: slot("R16-M1-A", "R16", "Winner R32-M3", { type: "winner-of-match", matchId: "R32-M3" }),
     metadata: { city: "Los Angeles", stadium: "SoFi Stadium", date: "2026-06-23" },
   },
   {
     id: "R16-M2",
     round: "R16",
-    homeSlot: slot("R16-M2-H", "R16", "Winner R32-M3", { type: "winner-of-match", matchId: "R32-M3" }),
-    awaySlot: slot("R16-M2-A", "R16", "Winner R32-M4", { type: "winner-of-match", matchId: "R32-M4" }),
+    homeSlot: slot("R16-M2-H", "R16", "Winner R32-M4", { type: "winner-of-match", matchId: "R32-M4" }),
+    awaySlot: slot("R16-M2-A", "R16", "Winner R32-M6", { type: "winner-of-match", matchId: "R32-M6" }),
     metadata: { city: "Mexico City", stadium: "Azteca", date: "2026-06-23" },
   },
   {
     id: "R16-M3",
     round: "R16",
-    homeSlot: slot("R16-M3-H", "R16", "Winner R32-M5", { type: "winner-of-match", matchId: "R32-M5" }),
-    awaySlot: slot("R16-M3-A", "R16", "Winner R32-M6", { type: "winner-of-match", matchId: "R32-M6" }),
+    homeSlot: slot("R16-M3-H", "R16", "Winner R32-M2", { type: "winner-of-match", matchId: "R32-M2" }),
+    awaySlot: slot("R16-M3-A", "R16", "Winner R32-M5", { type: "winner-of-match", matchId: "R32-M5" }),
     metadata: { city: "Atlanta", stadium: "Mercedes-Benz", date: "2026-06-24" },
   },
   {
@@ -347,15 +347,15 @@ const qf: Match[] = [
   {
     id: "QF-M2",
     round: "QF",
-    homeSlot: slot("QF-M2-H", "QF", "Winner R16-M3", { type: "winner-of-match", matchId: "R16-M3" }),
-    awaySlot: slot("QF-M2-A", "QF", "Winner R16-M4", { type: "winner-of-match", matchId: "R16-M4" }),
+    homeSlot: slot("QF-M2-H", "QF", "Winner R16-M5", { type: "winner-of-match", matchId: "R16-M5" }),
+    awaySlot: slot("QF-M2-A", "QF", "Winner R16-M6", { type: "winner-of-match", matchId: "R16-M6" }),
     metadata: { city: "Miami", stadium: "Hard Rock Stadium", date: "2026-06-29" },
   },
   {
     id: "QF-M3",
     round: "QF",
-    homeSlot: slot("QF-M3-H", "QF", "Winner R16-M5", { type: "winner-of-match", matchId: "R16-M5" }),
-    awaySlot: slot("QF-M3-A", "QF", "Winner R16-M6", { type: "winner-of-match", matchId: "R16-M6" }),
+    homeSlot: slot("QF-M3-H", "QF", "Winner R16-M3", { type: "winner-of-match", matchId: "R16-M3" }),
+    awaySlot: slot("QF-M3-A", "QF", "Winner R16-M4", { type: "winner-of-match", matchId: "R16-M4" }),
     metadata: { city: "Philadelphia", stadium: "Lincoln Financial Field", date: "2026-06-30" },
   },
   {

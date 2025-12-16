@@ -29,7 +29,7 @@ const getTeamGroup = (teamId: TeamId, prediction: WorldCupPrediction): GroupId |
 const assignThirdPlaceTeams = (
   prediction: WorldCupPrediction,
   template: Bracket
-): Map<number, TeamId> => {
+): Map<string, TeamId> => {
   // Get all 12 third-place teams with their groups
   const thirdPlaceTeams: Array<{ teamId: TeamId; groupId: GroupId }> = [];
   for (const group of prediction.groups) {
@@ -49,16 +49,18 @@ const assignThirdPlaceTeams = (
     .filter((t): t is { teamId: TeamId; groupId: GroupId } => t !== null);
 
   // Get all third-place slots from bracket template, sorted by rankIndex
-  const thirdPlaceSlots: Array<{ rankIndex: number; groupCombination: string }> = [];
+  const thirdPlaceSlots: Array<{ slotId: string; rankIndex: number; groupCombination: string }> = [];
   for (const match of template.matches) {
     if (match.homeSlot.source?.type === "third-ranked" && match.homeSlot.source.groupCombination) {
       thirdPlaceSlots.push({
+        slotId: match.homeSlot.id,
         rankIndex: match.homeSlot.source.rankIndex,
         groupCombination: match.homeSlot.source.groupCombination,
       });
     }
     if (match.awaySlot.source?.type === "third-ranked" && match.awaySlot.source.groupCombination) {
       thirdPlaceSlots.push({
+        slotId: match.awaySlot.id,
         rankIndex: match.awaySlot.source.rankIndex,
         groupCombination: match.awaySlot.source.groupCombination,
       });
@@ -67,7 +69,7 @@ const assignThirdPlaceTeams = (
   thirdPlaceSlots.sort((a, b) => a.rankIndex - b.rankIndex);
 
   // Assign teams to slots using FIFA algorithm
-  const assignments = new Map<number, TeamId>();
+  const assignments = new Map<string, TeamId>(); // Use slotId as key instead of rankIndex
   const available = [...ranked]; // Copy array
 
   for (const slot of thirdPlaceSlots) {
@@ -78,7 +80,7 @@ const assignThirdPlaceTeams = (
 
     if (teamIndex !== -1) {
       const team = available[teamIndex];
-      assignments.set(slot.rankIndex, team.teamId);
+      assignments.set(slot.slotId, team.teamId);
       available.splice(teamIndex, 1); // Remove from available
     }
   }
@@ -90,7 +92,8 @@ const resolveSource = (
   source: KnockoutSlotSource,
   prediction: WorldCupPrediction,
   template: Bracket,
-  thirdPlaceAssignments?: Map<number, TeamId>
+  thirdPlaceAssignments?: Map<string, TeamId>,
+  slotId?: string
 ): string | undefined => {
   switch (source.type) {
     case "group-position": {
@@ -98,11 +101,11 @@ const resolveSource = (
       return group?.positions[source.position];
     }
     case "third-ranked": {
-      if (!thirdPlaceAssignments) {
+      if (!thirdPlaceAssignments || !slotId) {
         // Fallback to old behavior if assignments not provided
         return prediction.thirdPlaceSelection.advancingThirdPlaceTeamIds[source.rankIndex];
       }
-      return thirdPlaceAssignments.get(source.rankIndex);
+      return thirdPlaceAssignments.get(slotId);
     }
     case "winner-of-match":
       return prediction.knockout.winnersByMatchId[source.matchId];
@@ -115,12 +118,12 @@ const resolveSlotTeamId = (
   slot: KnockoutSlot,
   prediction: WorldCupPrediction,
   template: Bracket,
-  thirdPlaceAssignments?: Map<number, TeamId>
+  thirdPlaceAssignments?: Map<string, TeamId>
 ): string | undefined => {
   const source = slot.source;
   if (!source) return undefined;
 
-  return resolveSource(source, prediction, template, thirdPlaceAssignments);
+  return resolveSource(source, prediction, template, thirdPlaceAssignments, slot.id);
 };
 
 export const resolveBracketLocally = (

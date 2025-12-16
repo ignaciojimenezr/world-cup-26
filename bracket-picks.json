@@ -1,0 +1,51 @@
+{
+  "knockout": {
+    "winnersByMatchId": {
+      "R32-M1": "denmark",
+      "R32-M2": "brazil",
+      "R32-M3": "germany",
+      "R32-M4": "netherlands",
+      "R32-M5": "norway",
+      "R32-M6": "france",
+      "R32-M7": "mexico",
+      "R32-M8": "england",
+      "R32-M13": "switzerland",
+      "R32-M14": "turkey",
+      "R32-M15": "argentina",
+      "R32-M16": "portugal"
+    }
+  },
+  "notes": {
+    "left_bracket_r32": {
+      "R32-M1": "DEN (winner) vs ITA",
+      "R32-M3": "GER (winner) vs USA",
+      "R32-M4": "NED (winner) vs MAR",
+      "R32-M6": "FRA (winner) vs SCO",
+      "R32-M9": "BEL vs SEN (no winner selected)",
+      "R32-M10": "PAR vs CAN (no winner selected)",
+      "R32-M11": "ESP vs AUT (no winner selected)",
+      "R32-M12": "COL vs CRO (no winner selected)"
+    },
+    "left_bracket_r16": {
+      "R16-M1": "GER (from R32-M3) vs FRA (from R32-M6) - not shown but implied",
+      "R16-M2": "DEN (from R32-M1) vs NED (from R32-M4) - no winner selected"
+    },
+    "right_bracket_r32": {
+      "R32-M2": "BRA (winner) vs JPN",
+      "R32-M5": "ECU vs NOR (winner)",
+      "R32-M7": "MEX (winner) vs CIV",
+      "R32-M8": "ENG (winner) vs ALG",
+      "R32-M13": "SUI (winner) vs TUN",
+      "R32-M14": "TUR (winner) vs EGY",
+      "R32-M15": "ARG (winner) vs URU",
+      "R32-M16": "POR (winner) vs GHA"
+    },
+    "right_bracket_r16": {
+      "R16-M3": "BRA (from R32-M2) vs NOR (from R32-M5) - no winner selected",
+      "R16-M4": "MEX (from R32-M7) vs ENG (from R32-M8) - no winner selected",
+      "R16-M7": "SUI (from R32-M13) vs POR (from R32-M16) - no winner selected",
+      "R16-M8": "ARG (from R32-M15) vs TUR (from R32-M14) - no winner selected"
+    }
+  }
+}
+

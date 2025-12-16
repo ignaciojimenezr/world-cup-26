@@ -68,7 +68,7 @@ const getTeamGroup = (teamId: TeamId, prediction: WorldCupPrediction): GroupId |
  */
 const assignThirdPlaceTeams = (
   prediction: WorldCupPrediction
-): Map<number, TeamId> => {
+): Map<string, TeamId> => {
   // Get all 12 third-place teams with their groups
   const thirdPlaceTeams: Array<{ teamId: TeamId; groupId: GroupId }> = [];
   for (const group of prediction.groups) {
@@ -88,16 +88,18 @@ const assignThirdPlaceTeams = (
     .filter((t): t is { teamId: TeamId; groupId: GroupId } => t !== null);
 
   // Get all third-place slots from bracket template, sorted by rankIndex
-  const thirdPlaceSlots: Array<{ rankIndex: number; groupCombination: string }> = [];
+  const thirdPlaceSlots: Array<{ slotId: string; rankIndex: number; groupCombination: string }> = [];
   for (const match of bracketTemplate.matches) {
     if (match.homeSlot.source?.type === "third-ranked" && match.homeSlot.source.groupCombination) {
       thirdPlaceSlots.push({
+        slotId: match.homeSlot.id,
         rankIndex: match.homeSlot.source.rankIndex,
         groupCombination: match.homeSlot.source.groupCombination,
       });
     }
     if (match.awaySlot.source?.type === "third-ranked" && match.awaySlot.source.groupCombination) {
       thirdPlaceSlots.push({
+        slotId: match.awaySlot.id,
         rankIndex: match.awaySlot.source.rankIndex,
         groupCombination: match.awaySlot.source.groupCombination,
       });
@@ -106,7 +108,7 @@ const assignThirdPlaceTeams = (
   thirdPlaceSlots.sort((a, b) => a.rankIndex - b.rankIndex);
 
   // Assign teams to slots using FIFA algorithm
-  const assignments = new Map<number, TeamId>();
+  const assignments = new Map<string, TeamId>(); // Use slotId as key instead of rankIndex
   const available = [...ranked]; // Copy array
 
   for (const slot of thirdPlaceSlots) {
@@ -117,7 +119,7 @@ const assignThirdPlaceTeams = (
 
     if (teamIndex !== -1) {
       const team = available[teamIndex];
-      assignments.set(slot.rankIndex, team.teamId);
+      assignments.set(slot.slotId, team.teamId);
       available.splice(teamIndex, 1); // Remove from available
     }
   }
@@ -128,7 +130,8 @@ const assignThirdPlaceTeams = (
 const resolveSource = (
   source: KnockoutSlotSource | undefined,
   prediction: WorldCupPrediction,
-  thirdPlaceAssignments?: Map<number, TeamId>
+  thirdPlaceAssignments?: Map<string, TeamId>,
+  slotId?: string
 ): string | undefined => {
   if (!source) return undefined;
   switch (source.type) {
@@ -137,11 +140,11 @@ const resolveSource = (
       return group?.positions[source.position];
     }
     case "third-ranked": {
-      if (!thirdPlaceAssignments) {
+      if (!thirdPlaceAssignments || !slotId) {
         // Fallback to old behavior if assignments not provided
         return prediction.thirdPlaceSelection.advancingThirdPlaceTeamIds[source.rankIndex];
       }
-      return thirdPlaceAssignments.get(source.rankIndex);
+      return thirdPlaceAssignments.get(slotId);
     }
     case "winner-of-match":
       return prediction.knockout.winnersByMatchId[source.matchId];
@@ -153,9 +156,9 @@ const resolveSource = (
 const resolveSlotTeamId = (
   slot: KnockoutSlot,
   prediction: WorldCupPrediction,
-  thirdPlaceAssignments?: Map<number, TeamId>
+  thirdPlaceAssignments?: Map<string, TeamId>
 ): string | undefined =>
-  resolveSource(slot.source, prediction, thirdPlaceAssignments);
+  resolveSource(slot.source, prediction, thirdPlaceAssignments, slot.id);
 
 const resolveBracket = (prediction: WorldCupPrediction): ResolvedBracket => {
   // Compute third-place assignments using FIFA algorithm
