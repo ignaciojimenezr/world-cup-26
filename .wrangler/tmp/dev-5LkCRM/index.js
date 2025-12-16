@@ -892,8 +892,7 @@ var r32 = [
     }),
     metadata: { city: "Houston", stadium: "NRG Stadium", date: "2026-06-13" }
   },
-  // Match 3: 1E vs 3rd (uses ABCDF combination, but rank based on qualification order)
-  // Note: Browser shows 3ABCDF, but qualification order determines ranking
+  // Match 3: 1E vs 3ABCDF (E1 vs 3rd from ABCDF)
   {
     id: "R32-M3",
     round: "R32",
@@ -905,7 +904,6 @@ var r32 = [
     awaySlot: slot("R32-M3-A", "R32", "3rd-ranked (ABCDF)", {
       type: "third-ranked",
       rankIndex: 0,
-      // Will be determined by qualification order
       groupCombination: "ABCDF"
     }),
     metadata: { city: "Boston", stadium: "Gillette Stadium", date: "2026-06-13" }
@@ -942,7 +940,7 @@ var r32 = [
     }),
     metadata: { city: "Dallas", stadium: "AT&T Stadium", date: "2026-06-14" }
   },
-  // Match 6: 1I vs 3rd (uses CDFGH - rank 1 in qualification order)
+  // Match 6: 1I vs 3CDFGH (I1 vs 3rd from CDFGH)
   {
     id: "R32-M6",
     round: "R32",
@@ -953,13 +951,12 @@ var r32 = [
     }),
     awaySlot: slot("R32-M6-A", "R32", "3rd-ranked (CDFGH)", {
       type: "third-ranked",
-      rankIndex: 0,
-      // Rank 1 in qualification order: CDFGH
+      rankIndex: 1,
       groupCombination: "CDFGH"
     }),
     metadata: { city: "New York", stadium: "MetLife", date: "2026-06-14" }
   },
-  // Match 7: 1A vs 3rd (uses CEFHI - rank 3 in qualification order)
+  // Match 7: 1A vs 3CEFHI (A1 vs 3rd from CEFHI)
   {
     id: "R32-M7",
     round: "R32",
@@ -971,12 +968,11 @@ var r32 = [
     awaySlot: slot("R32-M7-A", "R32", "3rd-ranked (CEFHI)", {
       type: "third-ranked",
       rankIndex: 2,
-      // Rank 3 in qualification order: CEFHI
       groupCombination: "CEFHI"
     }),
     metadata: { city: "Mexico City", stadium: "Azteca", date: "2026-06-14" }
   },
-  // Match 8: 1L vs 3rd (uses EHIJK combination)
+  // Match 8: 1L vs 3EHIJK (L1 vs 3rd from EHIJK)
   {
     id: "R32-M8",
     round: "R32",
@@ -987,13 +983,12 @@ var r32 = [
     }),
     awaySlot: slot("R32-M8-A", "R32", "3rd-ranked (EHIJK)", {
       type: "third-ranked",
-      rankIndex: 1,
-      // Will map to appropriate rank
+      rankIndex: 6,
       groupCombination: "EHIJK"
     }),
     metadata: { city: "Atlanta", stadium: "Mercedes-Benz", date: "2026-06-15" }
   },
-  // Match 9: 1G vs 3rd (uses AEHIJ combination)
+  // Match 9: 1G vs 3AEHIJ (G1 vs 3rd from AEHIJ)
   {
     id: "R32-M9",
     round: "R32",
@@ -1004,13 +999,12 @@ var r32 = [
     }),
     awaySlot: slot("R32-M9-A", "R32", "3rd-ranked (AEHIJ)", {
       type: "third-ranked",
-      rankIndex: 3,
-      // Will map to appropriate rank
+      rankIndex: 4,
       groupCombination: "AEHIJ"
     }),
     metadata: { city: "Seattle", stadium: "Lumen Field", date: "2026-06-15" }
   },
-  // Match 10: 1D vs 3rd (uses BEFIJ combination)
+  // Match 10: 1D vs 3BEFIJ (D1 vs 3rd from BEFIJ)
   {
     id: "R32-M10",
     round: "R32",
@@ -1021,8 +1015,7 @@ var r32 = [
     }),
     awaySlot: slot("R32-M10-A", "R32", "3rd-ranked (BEFIJ)", {
       type: "third-ranked",
-      rankIndex: 4,
-      // Will map to appropriate rank
+      rankIndex: 3,
       groupCombination: "BEFIJ"
     }),
     metadata: { city: "San Francisco", stadium: "Levi's Stadium", date: "2026-06-15" }
@@ -1059,7 +1052,7 @@ var r32 = [
     }),
     metadata: { city: "Toronto", stadium: "BMO Field", date: "2026-06-16" }
   },
-  // Match 13: 1B vs 3rd (uses EFGIJ combination)
+  // Match 13: 1B vs 3EFGIJ (B1 vs 3rd from EFGIJ)
   {
     id: "R32-M13",
     round: "R32",
@@ -1071,7 +1064,6 @@ var r32 = [
     awaySlot: slot("R32-M13-A", "R32", "3rd-ranked (EFGIJ)", {
       type: "third-ranked",
       rankIndex: 5,
-      // Will map to appropriate rank
       groupCombination: "EFGIJ"
     }),
     metadata: { city: "Vancouver", stadium: "BC Place", date: "2026-06-16" }
@@ -1108,7 +1100,7 @@ var r32 = [
     }),
     metadata: { city: "Miami", stadium: "Hard Rock Stadium", date: "2026-06-17" }
   },
-  // Match 16: 1K vs 3rd (uses DEIJL combination)
+  // Match 16: 1K vs 3DEIJL (K1 vs 3rd from DEIJL)
   {
     id: "R32-M16",
     round: "R32",
@@ -1119,8 +1111,7 @@ var r32 = [
     }),
     awaySlot: slot("R32-M16-A", "R32", "3rd-ranked (DEIJL)", {
       type: "third-ranked",
-      rankIndex: 6,
-      // Will map to appropriate rank
+      rankIndex: 7,
       groupCombination: "DEIJL"
     }),
     metadata: { city: "Kansas City", stadium: "Arrowhead", date: "2026-06-17" }
@@ -1368,27 +1359,74 @@ var defaultPrediction = /* @__PURE__ */ __name(() => ({
   thirdPlaceSelection: { advancingThirdPlaceTeamIds: [] },
   knockout: emptyKnockout()
 }), "defaultPrediction");
-var resolveSource = /* @__PURE__ */ __name((source, prediction) => {
+var assignThirdPlaceTeams = /* @__PURE__ */ __name((prediction) => {
+  const thirdPlaceTeams = [];
+  for (const group of prediction.groups) {
+    const teamId = group.positions[3];
+    if (teamId) {
+      thirdPlaceTeams.push({ teamId, groupId: group.groupId });
+    }
+  }
+  const ranked = prediction.thirdPlaceSelection.advancingThirdPlaceTeamIds.map((teamId) => {
+    const team = thirdPlaceTeams.find((t) => t.teamId === teamId);
+    return team ? { teamId, groupId: team.groupId } : null;
+  }).filter((t) => t !== null);
+  const thirdPlaceSlots = [];
+  for (const match of bracketTemplate.matches) {
+    if (match.homeSlot.source?.type === "third-ranked" && match.homeSlot.source.groupCombination) {
+      thirdPlaceSlots.push({
+        rankIndex: match.homeSlot.source.rankIndex,
+        groupCombination: match.homeSlot.source.groupCombination
+      });
+    }
+    if (match.awaySlot.source?.type === "third-ranked" && match.awaySlot.source.groupCombination) {
+      thirdPlaceSlots.push({
+        rankIndex: match.awaySlot.source.rankIndex,
+        groupCombination: match.awaySlot.source.groupCombination
+      });
+    }
+  }
+  thirdPlaceSlots.sort((a, b) => a.rankIndex - b.rankIndex);
+  const assignments = /* @__PURE__ */ new Map();
+  const available = [...ranked];
+  for (const slot2 of thirdPlaceSlots) {
+    const teamIndex = available.findIndex(
+      (t) => slot2.groupCombination.includes(t.groupId)
+    );
+    if (teamIndex !== -1) {
+      const team = available[teamIndex];
+      assignments.set(slot2.rankIndex, team.teamId);
+      available.splice(teamIndex, 1);
+    }
+  }
+  return assignments;
+}, "assignThirdPlaceTeams");
+var resolveSource = /* @__PURE__ */ __name((source, prediction, thirdPlaceAssignments) => {
   if (!source) return void 0;
   switch (source.type) {
     case "group-position": {
       const group = prediction.groups.find((g) => g.groupId === source.groupId);
       return group?.positions[source.position];
     }
-    case "third-ranked":
-      return prediction.thirdPlaceSelection.advancingThirdPlaceTeamIds[source.rankIndex];
+    case "third-ranked": {
+      if (!thirdPlaceAssignments) {
+        return prediction.thirdPlaceSelection.advancingThirdPlaceTeamIds[source.rankIndex];
+      }
+      return thirdPlaceAssignments.get(source.rankIndex);
+    }
     case "winner-of-match":
       return prediction.knockout.winnersByMatchId[source.matchId];
     default:
       return void 0;
   }
 }, "resolveSource");
-var resolveSlotTeamId = /* @__PURE__ */ __name((slot2, prediction) => resolveSource(slot2.source, prediction), "resolveSlotTeamId");
+var resolveSlotTeamId = /* @__PURE__ */ __name((slot2, prediction, thirdPlaceAssignments) => resolveSource(slot2.source, prediction, thirdPlaceAssignments), "resolveSlotTeamId");
 var resolveBracket = /* @__PURE__ */ __name((prediction) => {
+  const thirdPlaceAssignments = assignThirdPlaceTeams(prediction);
   const matches = bracketTemplate.matches.map((match) => ({
     ...match,
-    homeTeamId: resolveSlotTeamId(match.homeSlot, prediction),
-    awayTeamId: resolveSlotTeamId(match.awaySlot, prediction)
+    homeTeamId: resolveSlotTeamId(match.homeSlot, prediction, thirdPlaceAssignments),
+    awayTeamId: resolveSlotTeamId(match.awaySlot, prediction, thirdPlaceAssignments)
   }));
   return { matches };
 }, "resolveBracket");
@@ -1768,7 +1806,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env2, _ctx, middlewareCtx
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-J9HFTm/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-Ykn4Me/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -1800,7 +1838,7 @@ function __facade_invoke__(request, env2, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-J9HFTm/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-Ykn4Me/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

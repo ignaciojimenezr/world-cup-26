@@ -60,9 +60,10 @@ const r32: Match[] = [
       groupId: "E",
       position: 1,
     }),
-    awaySlot: slot("R32-M3-A", "R32", "3rd-ranked #1", {
+    awaySlot: slot("R32-M3-A", "R32", "3rd-ranked (ABCDF)", {
       type: "third-ranked",
       rankIndex: 0,
+      groupCombination: "ABCDF",
     }),
     metadata: { city: "Boston", stadium: "Gillette Stadium", date: "2026-06-13" },
   },
@@ -107,9 +108,10 @@ const r32: Match[] = [
       groupId: "I",
       position: 1,
     }),
-    awaySlot: slot("R32-M6-A", "R32", "3rd-ranked #2", {
+    awaySlot: slot("R32-M6-A", "R32", "3rd-ranked (CDFGH)", {
       type: "third-ranked",
       rankIndex: 1,
+      groupCombination: "CDFGH",
     }),
     metadata: { city: "New York", stadium: "MetLife", date: "2026-06-14" },
   },
@@ -122,9 +124,10 @@ const r32: Match[] = [
       groupId: "A",
       position: 1,
     }),
-    awaySlot: slot("R32-M7-A", "R32", "3rd-ranked #3", {
+    awaySlot: slot("R32-M7-A", "R32", "3rd-ranked (CEFHI)", {
       type: "third-ranked",
       rankIndex: 2,
+      groupCombination: "CEFHI",
     }),
     metadata: { city: "Mexico City", stadium: "Azteca", date: "2026-06-14" },
   },
@@ -137,9 +140,10 @@ const r32: Match[] = [
       groupId: "L",
       position: 1,
     }),
-    awaySlot: slot("R32-M8-A", "R32", "3rd-ranked #4", {
+    awaySlot: slot("R32-M8-A", "R32", "3rd-ranked (EHIJK)", {
       type: "third-ranked",
-      rankIndex: 3,
+      rankIndex: 6,
+      groupCombination: "EHIJK",
     }),
     metadata: { city: "Atlanta", stadium: "Mercedes-Benz", date: "2026-06-15" },
   },
@@ -152,9 +156,10 @@ const r32: Match[] = [
       groupId: "G",
       position: 1,
     }),
-    awaySlot: slot("R32-M9-A", "R32", "3rd-ranked #5", {
+    awaySlot: slot("R32-M9-A", "R32", "3rd-ranked (AEHIJ)", {
       type: "third-ranked",
       rankIndex: 4,
+      groupCombination: "AEHIJ",
     }),
     metadata: { city: "Seattle", stadium: "Lumen Field", date: "2026-06-15" },
   },
@@ -167,9 +172,10 @@ const r32: Match[] = [
       groupId: "D",
       position: 1,
     }),
-    awaySlot: slot("R32-M10-A", "R32", "3rd-ranked #6", {
+    awaySlot: slot("R32-M10-A", "R32", "3rd-ranked (BEFIJ)", {
       type: "third-ranked",
-      rankIndex: 5,
+      rankIndex: 3,
+      groupCombination: "BEFIJ",
     }),
     metadata: { city: "San Francisco", stadium: "Levi's Stadium", date: "2026-06-15" },
   },
@@ -214,9 +220,10 @@ const r32: Match[] = [
       groupId: "B",
       position: 1,
     }),
-    awaySlot: slot("R32-M13-A", "R32", "3rd-ranked #7", {
+    awaySlot: slot("R32-M13-A", "R32", "3rd-ranked (EFGIJ)", {
       type: "third-ranked",
-      rankIndex: 6,
+      rankIndex: 5,
+      groupCombination: "EFGIJ",
     }),
     metadata: { city: "Vancouver", stadium: "BC Place", date: "2026-06-16" },
   },
@@ -261,9 +268,10 @@ const r32: Match[] = [
       groupId: "K",
       position: 1,
     }),
-    awaySlot: slot("R32-M16-A", "R32", "3rd-ranked #8", {
+    awaySlot: slot("R32-M16-A", "R32", "3rd-ranked (DEIJL)", {
       type: "third-ranked",
       rankIndex: 7,
+      groupCombination: "DEIJL",
     }),
     metadata: { city: "Kansas City", stadium: "Arrowhead", date: "2026-06-17" },
   },
