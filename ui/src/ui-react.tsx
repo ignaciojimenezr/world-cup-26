@@ -99,7 +99,7 @@ const WorldCupApp = () => {
       if (detail && typeof detail === "object") {
         // The tool result is in detail.result or detail directly
         const result = detail.result ?? detail;
-        const payload = result?.data ?? result;
+        const payload = (result as any)?.data ?? result;
         if (payload?.teams || payload?.groups) {
           console.log("[WorldCup] Setting data from mcp:tool-result:", payload);
           dataReceivedRef.current = true;
@@ -132,16 +132,23 @@ const WorldCupApp = () => {
       }
     };
 
+    window.addEventListener("mcp:tool-result", handleToolResult as EventListener);
+    window.addEventListener("message", handlePostMessage as EventListener);
+
     if (isInMcpHost()) {
       console.log("[WorldCup] Running in MCP host - calling private tool (no UI reload)");
       // Call the private tool that doesn't have ui/resourceUri metadata
       // This won't trigger MCP Jam to reload the UI
       fetchInitialData();
-      return;
+    } else {
+      // Local development mode - fetch directly
+      fetchInitialData();
     }
-    
-    // Local development mode - fetch directly
-    fetchInitialData();
+
+    return () => {
+      window.removeEventListener("mcp:tool-result", handleToolResult as EventListener);
+      window.removeEventListener("message", handlePostMessage as EventListener);
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
