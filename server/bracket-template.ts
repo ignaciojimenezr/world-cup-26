@@ -19,237 +19,253 @@ const slot = (
 });
 
 const r32: Match[] = [
+  // Match 1: 2A vs 2B (A2 vs B2)
   {
     id: "R32-M1",
     round: "R32",
-    homeSlot: slot("R32-M1-H", "R32", "Group A 1st", {
+    homeSlot: slot("R32-M1-H", "R32", "Group A 2nd", {
       type: "group-position",
       groupId: "A",
-      position: 1,
-    }),
-    awaySlot: slot("R32-M1-A", "R32", "Group C 2nd", {
-      type: "group-position",
-      groupId: "C",
       position: 2,
     }),
-    metadata: { city: "New York", stadium: "MetLife", date: "2026-06-13" },
+    awaySlot: slot("R32-M1-A", "R32", "Group B 2nd", {
+      type: "group-position",
+      groupId: "B",
+      position: 2,
+    }),
+    metadata: { city: "Los Angeles", stadium: "SoFi Stadium", date: "2026-06-13" },
   },
+  // Match 2: 1C vs 2F (C1 vs F2)
   {
     id: "R32-M2",
     round: "R32",
-    homeSlot: slot("R32-M2-H", "R32", "Group B 1st", {
-      type: "group-position",
-      groupId: "B",
-      position: 1,
-    }),
-    awaySlot: slot("R32-M2-A", "R32", "Group D 2nd", {
-      type: "group-position",
-      groupId: "D",
-      position: 2,
-    }),
-    metadata: { city: "Los Angeles", stadium: "Rose Bowl", date: "2026-06-13" },
-  },
-  {
-    id: "R32-M3",
-    round: "R32",
-    homeSlot: slot("R32-M3-H", "R32", "Group C 1st", {
+    homeSlot: slot("R32-M2-H", "R32", "Group C 1st", {
       type: "group-position",
       groupId: "C",
       position: 1,
     }),
-    awaySlot: slot("R32-M3-A", "R32", "Group E 2nd", {
+    awaySlot: slot("R32-M2-A", "R32", "Group F 2nd", {
+      type: "group-position",
+      groupId: "F",
+      position: 2,
+    }),
+    metadata: { city: "Houston", stadium: "NRG Stadium", date: "2026-06-13" },
+  },
+  // Match 3: 1E vs 3ABCDF (E1 vs 3rd from ABCDF)
+  {
+    id: "R32-M3",
+    round: "R32",
+    homeSlot: slot("R32-M3-H", "R32", "Group E 1st", {
+      type: "group-position",
+      groupId: "E",
+      position: 1,
+    }),
+    awaySlot: slot("R32-M3-A", "R32", "3rd-ranked #1", {
+      type: "third-ranked",
+      rankIndex: 0,
+    }),
+    metadata: { city: "Boston", stadium: "Gillette Stadium", date: "2026-06-13" },
+  },
+  // Match 4: 1F vs 2C (F1 vs C2)
+  {
+    id: "R32-M4",
+    round: "R32",
+    homeSlot: slot("R32-M4-H", "R32", "Group F 1st", {
+      type: "group-position",
+      groupId: "F",
+      position: 1,
+    }),
+    awaySlot: slot("R32-M4-A", "R32", "Group C 2nd", {
+      type: "group-position",
+      groupId: "C",
+      position: 2,
+    }),
+    metadata: { city: "Monterrey", stadium: "Estadio BBVA", date: "2026-06-13" },
+  },
+  // Match 5: 2E vs 2I (E2 vs I2)
+  {
+    id: "R32-M5",
+    round: "R32",
+    homeSlot: slot("R32-M5-H", "R32", "Group E 2nd", {
       type: "group-position",
       groupId: "E",
       position: 2,
     }),
-    metadata: { city: "Vancouver", stadium: "BC Place", date: "2026-06-14" },
+    awaySlot: slot("R32-M5-A", "R32", "Group I 2nd", {
+      type: "group-position",
+      groupId: "I",
+      position: 2,
+    }),
+    metadata: { city: "Dallas", stadium: "AT&T Stadium", date: "2026-06-14" },
   },
+  // Match 6: 1I vs 3CDFGH (I1 vs 3rd from CDFGH)
   {
-    id: "R32-M4",
+    id: "R32-M6",
     round: "R32",
-    homeSlot: slot("R32-M4-H", "R32", "Group D 1st", {
+    homeSlot: slot("R32-M6-H", "R32", "Group I 1st", {
+      type: "group-position",
+      groupId: "I",
+      position: 1,
+    }),
+    awaySlot: slot("R32-M6-A", "R32", "3rd-ranked #2", {
+      type: "third-ranked",
+      rankIndex: 1,
+    }),
+    metadata: { city: "New York", stadium: "MetLife", date: "2026-06-14" },
+  },
+  // Match 7: 1A vs 3CEFHI (A1 vs 3rd from CEFHI)
+  {
+    id: "R32-M7",
+    round: "R32",
+    homeSlot: slot("R32-M7-H", "R32", "Group A 1st", {
+      type: "group-position",
+      groupId: "A",
+      position: 1,
+    }),
+    awaySlot: slot("R32-M7-A", "R32", "3rd-ranked #3", {
+      type: "third-ranked",
+      rankIndex: 2,
+    }),
+    metadata: { city: "Mexico City", stadium: "Azteca", date: "2026-06-14" },
+  },
+  // Match 8: 1L vs 3EHIJK (L1 vs 3rd from EHIJK)
+  {
+    id: "R32-M8",
+    round: "R32",
+    homeSlot: slot("R32-M8-H", "R32", "Group L 1st", {
+      type: "group-position",
+      groupId: "L",
+      position: 1,
+    }),
+    awaySlot: slot("R32-M8-A", "R32", "3rd-ranked #4", {
+      type: "third-ranked",
+      rankIndex: 3,
+    }),
+    metadata: { city: "Atlanta", stadium: "Mercedes-Benz", date: "2026-06-15" },
+  },
+  // Match 9: 1G vs 3AEHIJ (G1 vs 3rd from AEHIJ)
+  {
+    id: "R32-M9",
+    round: "R32",
+    homeSlot: slot("R32-M9-H", "R32", "Group G 1st", {
+      type: "group-position",
+      groupId: "G",
+      position: 1,
+    }),
+    awaySlot: slot("R32-M9-A", "R32", "3rd-ranked #5", {
+      type: "third-ranked",
+      rankIndex: 4,
+    }),
+    metadata: { city: "Seattle", stadium: "Lumen Field", date: "2026-06-15" },
+  },
+  // Match 10: 1D vs 3BEFIJ (D1 vs 3rd from BEFIJ)
+  {
+    id: "R32-M10",
+    round: "R32",
+    homeSlot: slot("R32-M10-H", "R32", "Group D 1st", {
       type: "group-position",
       groupId: "D",
       position: 1,
     }),
-    awaySlot: slot("R32-M4-A", "R32", "Group F 2nd", {
-      type: "group-position",
-      groupId: "F",
-      position: 2,
-    }),
-    metadata: { city: "Mexico City", stadium: "Azteca", date: "2026-06-14" },
-  },
-  {
-    id: "R32-M5",
-    round: "R32",
-    homeSlot: slot("R32-M5-H", "R32", "Group E 1st", {
-      type: "group-position",
-      groupId: "E",
-      position: 1,
-    }),
-    awaySlot: slot("R32-M5-A", "R32", "Group G 2nd", {
-      type: "group-position",
-      groupId: "G",
-      position: 2,
-    }),
-    metadata: { city: "Houston", stadium: "NRG Stadium", date: "2026-06-15" },
-  },
-  {
-    id: "R32-M6",
-    round: "R32",
-    homeSlot: slot("R32-M6-H", "R32", "Group F 1st", {
-      type: "group-position",
-      groupId: "F",
-      position: 1,
-    }),
-    awaySlot: slot("R32-M6-A", "R32", "Group H 2nd", {
-      type: "group-position",
-      groupId: "H",
-      position: 2,
-    }),
-    metadata: { city: "Seattle", stadium: "Lumen Field", date: "2026-06-15" },
-  },
-  {
-    id: "R32-M7",
-    round: "R32",
-    homeSlot: slot("R32-M7-H", "R32", "Group G 1st", {
-      type: "group-position",
-      groupId: "G",
-      position: 1,
-    }),
-    awaySlot: slot("R32-M7-A", "R32", "Group A 2nd", {
-      type: "group-position",
-      groupId: "A",
-      position: 2,
-    }),
-    metadata: { city: "Atlanta", stadium: "Mercedes-Benz", date: "2026-06-16" },
-  },
-  {
-    id: "R32-M8",
-    round: "R32",
-    homeSlot: slot("R32-M8-H", "R32", "Group H 1st", {
-      type: "group-position",
-      groupId: "H",
-      position: 1,
-    }),
-    awaySlot: slot("R32-M8-A", "R32", "Group B 2nd", {
-      type: "group-position",
-      groupId: "B",
-      position: 2,
-    }),
-    metadata: { city: "Dallas", stadium: "AT&T Stadium", date: "2026-06-16" },
-  },
-  {
-    id: "R32-M9",
-    round: "R32",
-    homeSlot: slot("R32-M9-H", "R32", "Group I 1st", {
-      type: "group-position",
-      groupId: "I",
-      position: 1,
-    }),
-    awaySlot: slot("R32-M9-A", "R32", "3rd-ranked #1", {
-      type: "third-ranked",
-      rankIndex: 0,
-    }),
-    metadata: { city: "Kansas City", stadium: "Arrowhead", date: "2026-06-17" },
-  },
-  {
-    id: "R32-M10",
-    round: "R32",
-    homeSlot: slot("R32-M10-H", "R32", "Group J 1st", {
-      type: "group-position",
-      groupId: "J",
-      position: 1,
-    }),
-    awaySlot: slot("R32-M10-A", "R32", "3rd-ranked #2", {
-      type: "third-ranked",
-      rankIndex: 1,
-    }),
-    metadata: { city: "Philadelphia", stadium: "Lincoln Financial Field", date: "2026-06-17" },
-  },
-  {
-    id: "R32-M11",
-    round: "R32",
-    homeSlot: slot("R32-M11-H", "R32", "Group K 1st", {
-      type: "group-position",
-      groupId: "K",
-      position: 1,
-    }),
-    awaySlot: slot("R32-M11-A", "R32", "3rd-ranked #3", {
-      type: "third-ranked",
-      rankIndex: 2,
-    }),
-    metadata: { city: "Guadalajara", stadium: "Akron Stadium", date: "2026-06-18" },
-  },
-  {
-    id: "R32-M12",
-    round: "R32",
-    homeSlot: slot("R32-M12-H", "R32", "Group L 1st", {
-      type: "group-position",
-      groupId: "L",
-      position: 1,
-    }),
-    awaySlot: slot("R32-M12-A", "R32", "3rd-ranked #4", {
-      type: "third-ranked",
-      rankIndex: 3,
-    }),
-    metadata: { city: "Miami", stadium: "Hard Rock Stadium", date: "2026-06-18" },
-  },
-  {
-    id: "R32-M13",
-    round: "R32",
-    homeSlot: slot("R32-M13-H", "R32", "Group I 2nd", {
-      type: "group-position",
-      groupId: "I",
-      position: 2,
-    }),
-    awaySlot: slot("R32-M13-A", "R32", "3rd-ranked #5", {
-      type: "third-ranked",
-      rankIndex: 4,
-    }),
-    metadata: { city: "Toronto", stadium: "BMO Field", date: "2026-06-19" },
-  },
-  {
-    id: "R32-M14",
-    round: "R32",
-    homeSlot: slot("R32-M14-H", "R32", "Group J 2nd", {
-      type: "group-position",
-      groupId: "J",
-      position: 2,
-    }),
-    awaySlot: slot("R32-M14-A", "R32", "3rd-ranked #6", {
+    awaySlot: slot("R32-M10-A", "R32", "3rd-ranked #6", {
       type: "third-ranked",
       rankIndex: 5,
     }),
-    metadata: { city: "Boston", stadium: "Gillette Stadium", date: "2026-06-19" },
+    metadata: { city: "San Francisco", stadium: "Levi's Stadium", date: "2026-06-15" },
   },
+  // Match 11: 1H vs 2J (H1 vs J2)
   {
-    id: "R32-M15",
+    id: "R32-M11",
     round: "R32",
-    homeSlot: slot("R32-M15-H", "R32", "Group K 2nd", {
+    homeSlot: slot("R32-M11-H", "R32", "Group H 1st", {
+      type: "group-position",
+      groupId: "H",
+      position: 1,
+    }),
+    awaySlot: slot("R32-M11-A", "R32", "Group J 2nd", {
+      type: "group-position",
+      groupId: "J",
+      position: 2,
+    }),
+    metadata: { city: "Los Angeles", stadium: "SoFi Stadium", date: "2026-06-16" },
+  },
+  // Match 12: 2K vs 2L (K2 vs L2)
+  {
+    id: "R32-M12",
+    round: "R32",
+    homeSlot: slot("R32-M12-H", "R32", "Group K 2nd", {
       type: "group-position",
       groupId: "K",
       position: 2,
     }),
-    awaySlot: slot("R32-M15-A", "R32", "3rd-ranked #7", {
-      type: "third-ranked",
-      rankIndex: 6,
-    }),
-    metadata: { city: "Seattle", stadium: "Lumen Field", date: "2026-06-20" },
-  },
-  {
-    id: "R32-M16",
-    round: "R32",
-    homeSlot: slot("R32-M16-H", "R32", "Group L 2nd", {
+    awaySlot: slot("R32-M12-A", "R32", "Group L 2nd", {
       type: "group-position",
       groupId: "L",
       position: 2,
+    }),
+    metadata: { city: "Toronto", stadium: "BMO Field", date: "2026-06-16" },
+  },
+  // Match 13: 1B vs 3EFGIJ (B1 vs 3rd from EFGIJ)
+  {
+    id: "R32-M13",
+    round: "R32",
+    homeSlot: slot("R32-M13-H", "R32", "Group B 1st", {
+      type: "group-position",
+      groupId: "B",
+      position: 1,
+    }),
+    awaySlot: slot("R32-M13-A", "R32", "3rd-ranked #7", {
+      type: "third-ranked",
+      rankIndex: 6,
+    }),
+    metadata: { city: "Vancouver", stadium: "BC Place", date: "2026-06-16" },
+  },
+  // Match 14: 2D vs 2G (D2 vs G2)
+  {
+    id: "R32-M14",
+    round: "R32",
+    homeSlot: slot("R32-M14-H", "R32", "Group D 2nd", {
+      type: "group-position",
+      groupId: "D",
+      position: 2,
+    }),
+    awaySlot: slot("R32-M14-A", "R32", "Group G 2nd", {
+      type: "group-position",
+      groupId: "G",
+      position: 2,
+    }),
+    metadata: { city: "Dallas", stadium: "AT&T Stadium", date: "2026-06-17" },
+  },
+  // Match 15: 1J vs 2H (J1 vs H2)
+  {
+    id: "R32-M15",
+    round: "R32",
+    homeSlot: slot("R32-M15-H", "R32", "Group J 1st", {
+      type: "group-position",
+      groupId: "J",
+      position: 1,
+    }),
+    awaySlot: slot("R32-M15-A", "R32", "Group H 2nd", {
+      type: "group-position",
+      groupId: "H",
+      position: 2,
+    }),
+    metadata: { city: "Miami", stadium: "Hard Rock Stadium", date: "2026-06-17" },
+  },
+  // Match 16: 1K vs 3DEIJL (K1 vs 3rd from DEIJL)
+  {
+    id: "R32-M16",
+    round: "R32",
+    homeSlot: slot("R32-M16-H", "R32", "Group K 1st", {
+      type: "group-position",
+      groupId: "K",
+      position: 1,
     }),
     awaySlot: slot("R32-M16-A", "R32", "3rd-ranked #8", {
       type: "third-ranked",
       rankIndex: 7,
     }),
-    metadata: { city: "San Francisco", stadium: "Levi's Stadium", date: "2026-06-20" },
+    metadata: { city: "Kansas City", stadium: "Arrowhead", date: "2026-06-17" },
   },
 ];
 

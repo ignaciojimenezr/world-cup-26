@@ -49,7 +49,8 @@ export interface KnockoutSlotSource_GroupPosition {
 
 export interface KnockoutSlotSource_ThirdRanked {
   type: "third-ranked";
-  rankIndex: number;
+  rankIndex: number; // 0-7, ordered by qualification combinations
+  groupCombination?: string; // e.g., "CDFGH", "CDFHI", etc.
 }
 
 export interface KnockoutSlotSource_MatchWinner {
