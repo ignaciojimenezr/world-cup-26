@@ -225,21 +225,29 @@ const GroupSelector = ({
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <h1 className="text-xl sm:text-2xl font-semibold">Group Predictions</h1>
+      <div className="text-center space-y-1">
+        <h1 className="text-xl sm:text-2xl font-display font-semibold trophy-shimmer">
+          Group Stage Predictions
+        </h1>
+        <p className="text-sm text-muted-foreground">Click teams in order to set their final positions</p>
       </div>
       
       <div className="flex justify-center gap-2">
-        <Button variant="outline" size="sm" onClick={autoGenerate}>
-          Auto Generate
+        <Button variant="outline" size="sm" onClick={autoGenerate} className="border-gold/30 hover:border-gold/60 hover:bg-gold/10">
+          ⚡ Auto Generate
         </Button>
-        <Button size="sm" disabled={!allComplete} onClick={onContinue} className={allComplete ? "bg-green-600 hover:bg-green-700" : ""}>
+        <Button 
+          size="sm" 
+          disabled={!allComplete} 
+          onClick={onContinue} 
+          className={allComplete ? "bg-gradient-to-r from-gold-dark via-gold to-gold-light text-fifa-blue font-semibold" : ""}
+        >
           Continue →
         </Button>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-4">
-        {groups.map((group) => {
+        {groups.map((group, groupIndex) => {
           const prediction = value.find((g) => g.groupId === group.id);
           const complete = prediction ? isGroupComplete(prediction) : false;
           const nextPos = getNextPosition(group.id);
@@ -247,15 +255,16 @@ const GroupSelector = ({
           return (
             <Card 
               key={group.id} 
-              className={`bg-slate-900 border-slate-700 ${complete ? "ring-2 ring-green-500" : ""}`}
+              className={`glass-card bg-white/5 border-white/10 animate-fade-in ${complete ? "ring-2 ring-gold/60" : ""}`}
+              style={{ animationDelay: `${groupIndex * 0.05}s` }}
             >
               <CardHeader className="pb-2">
-                <CardTitle className="text-white text-center text-lg">
-                  GROUP {group.id}
+                <CardTitle className="text-center text-lg font-display">
+                  <span className="text-gold">GROUP</span> {group.id}
                 </CardTitle>
                 {nextPos && (
-                  <p className="text-xs text-slate-400 text-center">
-                    Next click assigns: {nextPos === 1 ? "1st" : nextPos === 2 ? "2nd" : nextPos === 3 ? "3rd" : "4th"} place
+                  <p className="text-xs text-muted-foreground text-center">
+                    Next: <span className="text-gold font-medium">{nextPos === 1 ? "1st" : nextPos === 2 ? "2nd" : nextPos === 3 ? "3rd" : "4th"}</span> place
                   </p>
                 )}
                 {complete && (
@@ -277,15 +286,15 @@ const GroupSelector = ({
                       <button
                         key={teamId}
                         onClick={() => handlePlayoffSlotClick(group.id, teamId)}
-                        className="w-full flex items-center gap-3 p-3 rounded-lg text-left bg-slate-800/50 text-slate-300 hover:bg-slate-700 cursor-pointer transition-all border-2 border-dashed border-slate-600"
+                        className="w-full flex items-center gap-3 p-3 rounded-lg text-left bg-white/5 text-foreground/70 hover:bg-white/10 cursor-pointer transition-all border-2 border-dashed border-gold/30 hover:border-gold/60"
                       >
-                        <span className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center text-xs font-bold text-white">
-                          FIFA
+                        <span className="w-8 h-8 rounded-full bg-gradient-to-br from-gold-light to-gold-dark flex items-center justify-center text-xs font-bold text-fifa-blue">
+                          TBD
                         </span>
-                        <span className="font-medium flex-1 text-slate-400">
+                        <span className="font-medium flex-1 text-muted-foreground">
                           {teamId.replace("euro-playoff-", "Playoff ").replace("intercon-playoff-", "Playoff ")}
                         </span>
-                        <span className="text-xs text-blue-400">Select →</span>
+                        <span className="text-xs text-gold">Select →</span>
                       </button>
                     );
                   }
@@ -300,24 +309,24 @@ const GroupSelector = ({
                           className={`
                             flex-1 flex items-center gap-3 p-3 rounded-lg text-left transition-all
                             ${isAssigned 
-                              ? "bg-slate-800 text-white" 
+                              ? "bg-white/10 text-foreground" 
                               : canClick
-                                ? "bg-slate-800/50 text-slate-300 hover:bg-slate-700 cursor-pointer border border-blue-500/50"
-                                : "bg-slate-800/30 text-slate-500"
+                                ? "bg-white/5 text-foreground/80 hover:bg-white/10 cursor-pointer border border-gold/30"
+                                : "bg-white/3 text-foreground/50"
                             }
                           `}
                         >
                           <span className="text-2xl">{displayTeam.flagEmoji}</span>
                           <span className="font-medium flex-1">{displayTeam.name}</span>
                           {isAssigned && (
-                            <span className="bg-blue-600 text-white px-2 py-1 rounded text-sm font-bold min-w-[24px] text-center">
+                            <span className="bg-gradient-to-r from-gold-dark to-gold text-fifa-blue px-2 py-1 rounded text-sm font-bold min-w-[24px] text-center">
                               {assignedPosition}
                             </span>
                           )}
                         </button>
                         <button
                           onClick={() => clearPlayoffSelection(group.id, teamId)}
-                          className="px-3 rounded-lg bg-red-600/20 text-red-400 hover:bg-red-600/40 transition-colors text-sm"
+                          className="px-3 rounded-lg bg-red-500/20 text-red-400 hover:bg-red-500/40 transition-colors text-sm"
                           title="Change playoff pick"
                         >
                           ✕
@@ -335,10 +344,10 @@ const GroupSelector = ({
                       className={`
                         w-full flex items-center gap-3 p-3 rounded-lg text-left transition-all
                         ${isAssigned 
-                          ? "bg-slate-800 text-white" 
+                          ? "bg-white/10 text-foreground" 
                           : canClick
-                            ? "bg-slate-800/50 text-slate-300 hover:bg-slate-700 cursor-pointer"
-                            : "bg-slate-800/30 text-slate-500"
+                            ? "bg-white/5 text-foreground/80 hover:bg-white/10 cursor-pointer"
+                            : "bg-white/3 text-foreground/50"
                         }
                       `}
                     >
@@ -346,7 +355,7 @@ const GroupSelector = ({
                       <span className="font-medium flex-1">{displayTeam?.name ?? teamId}</span>
                       
                       {isAssigned && (
-                        <span className="bg-blue-600 text-white px-2 py-1 rounded text-sm font-bold min-w-[24px] text-center">
+                        <span className="bg-gradient-to-r from-gold-dark to-gold text-fifa-blue px-2 py-1 rounded text-sm font-bold min-w-[24px] text-center">
                           {assignedPosition}
                         </span>
                       )}
@@ -357,7 +366,7 @@ const GroupSelector = ({
                 <Button
                   variant="outline"
                   size="sm"
-                  className="w-full mt-2 border-slate-600 text-slate-400 hover:text-white"
+                  className="w-full mt-2 border-white/20 text-muted-foreground hover:text-foreground hover:bg-white/10"
                   onClick={() => clearGroup(group.id)}
                 >
                   Clear
@@ -370,11 +379,11 @@ const GroupSelector = ({
 
       {/* Playoff Selection Dialog */}
       <Dialog open={!!playoffDialog} onOpenChange={() => setPlayoffDialog(null)}>
-        <DialogContent className="bg-slate-900 border-slate-700 text-white">
+        <DialogContent className="glass-card bg-fifa-blue/95 border-gold/30 text-foreground">
           <DialogHeader>
-            <DialogTitle>Who will win this playoff?</DialogTitle>
+            <DialogTitle className="trophy-shimmer">Who will win this playoff?</DialogTitle>
           </DialogHeader>
-          <p className="text-sm text-slate-400 mb-4">
+          <p className="text-sm text-muted-foreground mb-4">
             Pick which team you think will qualify from this playoff
           </p>
           <div className="grid grid-cols-1 gap-2">
@@ -386,7 +395,7 @@ const GroupSelector = ({
                 <button
                   key={teamId}
                   onClick={() => handlePlayoffSelect(teamId)}
-                  className="flex items-center gap-3 p-4 rounded-lg bg-slate-800 hover:bg-slate-700 cursor-pointer transition-colors"
+                  className="flex items-center gap-3 p-4 rounded-lg bg-white/10 hover:bg-white/20 cursor-pointer transition-colors"
                 >
                   <span className="text-2xl">{team.flagEmoji}</span>
                   <span className="font-medium">{team.name}</span>
@@ -399,7 +408,12 @@ const GroupSelector = ({
 
       {/* Continue button at bottom */}
       <div className="flex justify-center pt-4">
-        <Button size="lg" disabled={!allComplete} onClick={onContinue} className={allComplete ? "bg-green-600 hover:bg-green-700" : ""}>
+        <Button 
+          size="lg" 
+          disabled={!allComplete} 
+          onClick={onContinue} 
+          className={allComplete ? "bg-gradient-to-r from-gold-dark via-gold to-gold-light text-fifa-blue font-semibold shadow-lg shadow-gold/25" : ""}
+        >
           Continue →
         </Button>
       </div>

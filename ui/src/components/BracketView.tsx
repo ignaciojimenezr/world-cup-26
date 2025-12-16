@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import {
   ResolvedBracket,
@@ -107,10 +107,10 @@ const MatchCard = ({
         disabled={!canPick}
         className={cn(
           "flex items-center gap-1 px-1.5 py-0.5 rounded transition-all w-full text-[10px]",
-          isWinner && "bg-green-600 text-white",
-          !isWinner && hasTeam && canPick && "bg-slate-700 hover:bg-slate-600 cursor-pointer",
-          !isWinner && hasTeam && !canPick && "bg-slate-800 text-slate-400",
-          !hasTeam && "bg-slate-800/50 text-slate-500 italic"
+          isWinner && "bg-gradient-to-r from-gold-dark to-gold text-fifa-blue font-semibold",
+          !isWinner && hasTeam && canPick && "bg-white/10 hover:bg-white/20 cursor-pointer",
+          !isWinner && hasTeam && !canPick && "bg-white/5 text-foreground/60",
+          !hasTeam && "bg-white/3 text-muted-foreground italic"
         )}
       >
         <span className="text-xs">{flag}</span>
@@ -125,15 +125,14 @@ const MatchCard = ({
       layout
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="bg-slate-900 rounded-lg p-1.5 border border-slate-700 w-[110px] flex-shrink-0"
+      className="glass-card bg-white/5 rounded-lg p-1.5 border border-white/10 w-[110px] flex-shrink-0"
     >
-      <div className="text-[10px] text-slate-500 mb-0.5 flex justify-between">
-        <span className="font-semibold text-[9px]">{match.id}</span>
-        {match.metadata?.city && <span className="text-[9px] truncate max-w-[40px]">{match.metadata.city}</span>}
+      <div className="text-[10px] text-muted-foreground mb-0.5">
+        <span className="font-semibold text-[9px] text-gold/70">{match.id}</span>
       </div>
       <div className="space-y-0.5">
         <TeamButton teamId={match.homeTeamId} {...home} />
-        <div className="text-center text-[9px] text-slate-600">vs</div>
+        <div className="text-center text-[9px] text-muted-foreground/60">vs</div>
         <TeamButton teamId={match.awayTeamId} {...away} />
       </div>
     </motion.div>
@@ -174,7 +173,7 @@ const RoundSection = ({
   const completedCount = matches.filter(m => prediction.knockout.winnersByMatchId[m.id]).length;
   const allComplete = completedCount === matches.length;
 
-  // Get matches for current bracket half
+  // Get matches for current bracket half (keep original order)
   const currentMatches = bracketHalf === "left" ? leftMatches : rightMatches;
   const leftComplete = leftMatches.filter(m => prediction.knockout.winnersByMatchId[m.id]).length === leftMatches.length;
   const rightComplete = rightMatches.filter(m => prediction.knockout.winnersByMatchId[m.id]).length === rightMatches.length;
@@ -200,65 +199,65 @@ const RoundSection = ({
     }
     
     return (
-      <div className="space-y-6">
+      <div className="space-y-3">
         <div className="flex items-center justify-center gap-3">
-          <h3 className="text-lg font-bold text-center">{title}</h3>
+          <h3 className="text-lg font-display font-bold text-center trophy-shimmer">{title}</h3>
           <span className={cn(
             "text-xs px-2 py-0.5 rounded-full",
-            allComplete ? "bg-green-600 text-white" : "bg-slate-700 text-slate-300"
+            allComplete ? "bg-gradient-to-r from-gold-dark to-gold text-fifa-blue font-medium" : "bg-white/10 text-foreground/70"
           )}>
             {completedCount}/{matches.length}
           </span>
         </div>
         
-        {/* Final match displayed above */}
+        {/* Final match displayed above - clickable to pick winner */}
         {finalMatch && (
-          <div className="flex flex-col items-center gap-2">
-            <div className="text-xs text-slate-400 font-medium">Final</div>
-            <div className="bg-slate-800 rounded-lg p-1.5 border border-slate-600 w-[110px]">
-              <div className="text-[10px] text-slate-400 mb-0.5 flex justify-between">
-                <span className="font-semibold text-[9px]">{finalMatch.id}</span>
-                {finalMatch.metadata?.city && <span className="text-[9px] truncate max-w-[40px]">{finalMatch.metadata.city}</span>}
+          <div className="flex flex-col items-center gap-1">
+            <div className="text-xs text-gold font-medium">Final</div>
+            <div className="glass-card bg-white/8 rounded-lg p-1.5 border border-gold/30 w-[110px]">
+              <div className="text-[10px] text-muted-foreground mb-0.5">
+                <span className="font-semibold text-[9px] text-gold/70">{finalMatch.id}</span>
               </div>
               <div className="space-y-0.5">
-                <div className={cn(
-                  "flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px]",
-                  leftWinner ? "bg-slate-700/50" : "bg-slate-800/30 opacity-50"
-                )}>
+                <button
+                  onClick={() => leftWinner && bothSemifinalsComplete && onWinnerChange(finalMatch.id, leftWinner)}
+                  disabled={!leftWinner || !bothSemifinalsComplete}
+                  className={cn(
+                    "w-full flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] transition-all",
+                    finalWinner === leftWinner && "bg-gradient-to-r from-gold-dark to-gold text-fifa-blue font-semibold",
+                    finalWinner !== leftWinner && leftWinner && bothSemifinalsComplete && "bg-white/10 hover:bg-white/20 cursor-pointer",
+                    !leftWinner && "bg-white/3 opacity-50"
+                  )}
+                >
                   <span className="text-xs">{teamDisplay(leftWinner, teamsById).flag}</span>
                   <span className="font-medium flex-1 truncate text-[10px]">{teamDisplay(leftWinner, teamsById).name}</span>
-                </div>
-                <div className="text-center text-[9px] text-slate-500">vs</div>
-                <div className={cn(
-                  "flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px]",
-                  rightWinner ? "bg-slate-700/50" : "bg-slate-800/30 opacity-50"
-                )}>
+                  {finalWinner === leftWinner && <span className="text-[9px]">🏆</span>}
+                </button>
+                <div className="text-center text-[9px] text-muted-foreground/60">vs</div>
+                <button
+                  onClick={() => rightWinner && bothSemifinalsComplete && onWinnerChange(finalMatch.id, rightWinner)}
+                  disabled={!rightWinner || !bothSemifinalsComplete}
+                  className={cn(
+                    "w-full flex items-center gap-1 px-1.5 py-0.5 rounded text-[10px] transition-all",
+                    finalWinner === rightWinner && "bg-gradient-to-r from-gold-dark to-gold text-fifa-blue font-semibold",
+                    finalWinner !== rightWinner && rightWinner && bothSemifinalsComplete && "bg-white/10 hover:bg-white/20 cursor-pointer",
+                    !rightWinner && "bg-white/3 opacity-50"
+                  )}
+                >
                   <span className="text-xs">{teamDisplay(rightWinner, teamsById).flag}</span>
                   <span className="font-medium flex-1 truncate text-[10px]">{teamDisplay(rightWinner, teamsById).name}</span>
-                </div>
+                  {finalWinner === rightWinner && <span className="text-[9px]">🏆</span>}
+                </button>
               </div>
             </div>
-            {/* Lines connecting to semifinals */}
-            {bothSemifinalsComplete && (
-              <div className="relative w-full flex justify-center">
-                <svg className="absolute" width="300" height="40" style={{ pointerEvents: 'none', overflow: 'visible' }}>
-                  <path
-                    d="M 150,0 L 150,20 M 150,20 L 75,20 M 150,20 L 225,20"
-                    stroke="#64748b"
-                    strokeWidth="2"
-                    fill="none"
-                  />
-                </svg>
-              </div>
-            )}
           </div>
         )}
         
         {/* Both semifinal matches side by side */}
-        <div className="flex flex-wrap justify-center gap-8">
+        <div className="flex flex-wrap justify-center gap-6">
           {/* Left bracket */}
-          <div className="flex flex-col items-center gap-2">
-            <div className="text-xs text-slate-400 font-medium">Left bracket</div>
+          <div className="flex flex-col items-center gap-1">
+            <div className="text-xs text-gold/70 font-medium">Left bracket</div>
             {leftMatch && (
               <MatchCard
                 match={leftMatch}
@@ -270,24 +269,11 @@ const RoundSection = ({
                 total={1}
               />
             )}
-            {/* Line connecting to final */}
-            {leftWinner && finalMatch && (
-              <div className="relative w-full flex justify-center mt-2">
-                <svg className="absolute" width="120" height="30" style={{ pointerEvents: 'none', overflow: 'visible' }}>
-                  <path
-                    d="M 60,0 L 60,30"
-                    stroke="#64748b"
-                    strokeWidth="2"
-                    fill="none"
-                  />
-                </svg>
-              </div>
-            )}
           </div>
           
           {/* Right bracket */}
-          <div className="flex flex-col items-center gap-2">
-            <div className="text-xs text-slate-400 font-medium">Right bracket</div>
+          <div className="flex flex-col items-center gap-1">
+            <div className="text-xs text-gold/70 font-medium">Right bracket</div>
             {rightMatch && (
               <MatchCard
                 match={rightMatch}
@@ -299,19 +285,6 @@ const RoundSection = ({
                 total={1}
               />
             )}
-            {/* Line connecting to final */}
-            {rightWinner && finalMatch && (
-              <div className="relative w-full flex justify-center mt-2">
-                <svg className="absolute" width="120" height="30" style={{ pointerEvents: 'none', overflow: 'visible' }}>
-                  <path
-                    d="M 60,0 L 60,30"
-                    stroke="#64748b"
-                    strokeWidth="2"
-                    fill="none"
-                  />
-                </svg>
-              </div>
-            )}
           </div>
         </div>
       </div>
@@ -322,10 +295,10 @@ const RoundSection = ({
     return (
       <div className="space-y-4">
         <div className="flex items-center justify-center gap-3">
-          <h3 className="text-lg font-bold text-center">{roundLabels[round]}</h3>
+          <h3 className="text-lg font-display font-bold text-center trophy-shimmer">{roundLabels[round]}</h3>
           <span className={cn(
             "text-xs px-2 py-0.5 rounded-full",
-            allComplete ? "bg-green-600 text-white" : "bg-slate-700 text-slate-300"
+            allComplete ? "bg-gradient-to-r from-gold-dark to-gold text-fifa-blue font-medium" : "bg-white/10 text-foreground/70"
           )}>
             {completedCount}/{matches.length}
           </span>
@@ -351,17 +324,17 @@ const RoundSection = ({
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-center gap-3">
-        <h3 className="text-lg font-bold text-center">{roundLabels[round]}</h3>
+        <h3 className="text-lg font-display font-bold text-center trophy-shimmer">{roundLabels[round]}</h3>
         <span className={cn(
           "text-xs px-2 py-0.5 rounded-full",
-          allComplete ? "bg-green-600 text-white" : "bg-slate-700 text-slate-300"
+          allComplete ? "bg-gradient-to-r from-gold-dark to-gold text-fifa-blue font-medium" : "bg-white/10 text-foreground/70"
         )}>
           {completedCount}/{matches.length}
         </span>
       </div>
 
       <div className="text-center mb-4">
-        <p className="text-sm text-slate-400 font-medium">
+        <p className="text-sm text-gold/70 font-medium">
           {bracketHalf === "left" ? "Left bracket:" : "Right bracket:"}
         </p>
       </div>
@@ -442,7 +415,7 @@ const RoundSection = ({
                           L ${isLeftBracket ? '25' : '25'},${match1WinnerY} 
                           L ${isLeftBracket ? '25' : '25'},${nextMatchHomeY} 
                           L ${isLeftBracket ? '50' : '0'},${nextMatchHomeY}`}
-                      stroke="#64748b"
+                      stroke="rgba(212, 169, 23, 0.5)"
                       strokeWidth="2"
                       fill="none"
                     />
@@ -452,7 +425,7 @@ const RoundSection = ({
                           L ${isLeftBracket ? '25' : '25'},${match2WinnerY} 
                           L ${isLeftBracket ? '25' : '25'},${nextMatchAwayY} 
                           L ${isLeftBracket ? '50' : '0'},${nextMatchAwayY}`}
-                      stroke="#64748b"
+                      stroke="rgba(212, 169, 23, 0.5)"
                       strokeWidth="2"
                       fill="none"
                     />
@@ -465,19 +438,18 @@ const RoundSection = ({
                 <motion.div
                   initial={{ opacity: 0, x: isLeftBracket ? 20 : -20 }}
                   animate={{ opacity: 1, x: 0 }}
-                  className="bg-slate-800 rounded-lg p-1.5 border border-slate-600 w-[110px] flex-shrink-0 self-center"
+                  className="glass-card bg-white/8 rounded-lg p-1.5 border border-white/15 w-[110px] flex-shrink-0 self-center"
                 >
-                  <div className="text-[10px] text-slate-400 mb-0.5 flex justify-between">
-                    <span className="font-semibold text-[9px]">{nextMatch.id}</span>
-                    {nextMatch.metadata?.city && <span className="text-[9px] truncate max-w-[40px]">{nextMatch.metadata.city}</span>}
+                  <div className="text-[10px] text-muted-foreground mb-0.5">
+                    <span className="font-semibold text-[9px] text-gold/70">{nextMatch.id}</span>
                   </div>
                   <div className="space-y-0.5">
-                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-700/50 text-[10px]">
+                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/10 text-[10px]">
                       <span className="text-xs">{teamDisplay(nextMatch.homeTeamId, teamsById).flag}</span>
                       <span className="font-medium flex-1 truncate text-[10px]">{teamDisplay(nextMatch.homeTeamId, teamsById).name}</span>
                     </div>
-                    <div className="text-center text-[9px] text-slate-500">vs</div>
-                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-slate-700/50 text-[10px]">
+                    <div className="text-center text-[9px] text-muted-foreground/60">vs</div>
+                    <div className="flex items-center gap-1 px-1.5 py-0.5 rounded bg-white/10 text-[10px]">
                       <span className="text-xs">{teamDisplay(nextMatch.awayTeamId, teamsById).flag}</span>
                       <span className="font-medium flex-1 truncate text-[10px]">{teamDisplay(nextMatch.awayTeamId, teamsById).name}</span>
                     </div>
@@ -514,14 +486,31 @@ const BracketView = ({
     F: "left",
   });
 
+  // Scroll to top helper
+  const scrollToTop = () => {
+    window.scrollTo(0, 0);
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+    const root = document.getElementById('root');
+    if (root) root.scrollTop = 0;
+  };
+
   // When bracket half changes, remember it for this round
   const handleBracketHalfChange = (half: BracketHalf) => {
+    scrollToTop();
     setBracketHalf(half);
     setLastBracketHalf(prev => ({ ...prev, [activeRound]: half }));
   };
 
+  // Scroll to top when bracket half or round changes (backup after render)
+  useEffect(() => {
+    const timer = setTimeout(scrollToTop, 50);
+    return () => clearTimeout(timer);
+  }, [bracketHalf, activeRound]);
+
   // When round changes, restore to last active bracket half for that round
   const handleRoundChange = (round: KnockoutRound) => {
+    scrollToTop();
     setActiveRound(round);
     setBracketHalf(lastBracketHalf[round]);
   };
@@ -553,53 +542,16 @@ const BracketView = ({
       />
       
       {/* If viewing semifinals, also allow picking final winner */}
-      {activeRound === "SF" && (() => {
-        const finalMatch = bracket.matches.find(m => m.round === "F");
-        const leftMatch = activeMatches.find(m => isLeftHalf(m.id));
-        const rightMatch = activeMatches.find(m => !isLeftHalf(m.id));
-        const leftWinner = leftMatch ? prediction.knockout.winnersByMatchId[leftMatch.id] : undefined;
-        const rightWinner = rightMatch ? prediction.knockout.winnersByMatchId[rightMatch.id] : undefined;
-        const finalWinner = finalMatch ? prediction.knockout.winnersByMatchId[finalMatch.id] : undefined;
-        
-        // Only show "Pick Final Winner" when both finalists are selected but no winner yet
-        if (!finalMatch || !leftWinner || !rightWinner || finalWinner) return null;
-        
-        return (
-          <div className="pt-4 border-t border-slate-700">
-            <div className="text-center text-sm text-slate-300 mb-2">Pick Final Winner:</div>
-            <div className="flex justify-center gap-2">
-              <button
-                onClick={() => onWinnerChange(finalMatch.id, leftWinner)}
-                className={cn(
-                  "px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                  prediction.knockout.winnersByMatchId[finalMatch.id] === leftWinner
-                    ? "bg-green-600 text-white"
-                    : "bg-slate-700 hover:bg-slate-600 text-slate-200"
-                )}
-              >
-                {teamsById[leftWinner]?.flagEmoji} {teamsById[leftWinner]?.shortName || teamsById[leftWinner]?.name}
-              </button>
-              <button
-                onClick={() => onWinnerChange(finalMatch.id, rightWinner)}
-                className={cn(
-                  "px-4 py-2 rounded-lg text-sm font-medium transition-all",
-                  prediction.knockout.winnersByMatchId[finalMatch.id] === rightWinner
-                    ? "bg-green-600 text-white"
-                    : "bg-slate-700 hover:bg-slate-600 text-slate-200"
-                )}
-              >
-                {teamsById[rightWinner]?.flagEmoji} {teamsById[rightWinner]?.shortName || teamsById[rightWinner]?.name}
-              </button>
-            </div>
-          </div>
-        );
-      })()}
 
       {/* Navigation Buttons */}
-      <div className="flex flex-wrap justify-center gap-3 pt-4">
+      <div className={cn(
+        "flex flex-wrap justify-center gap-3 border-t border-white/10",
+        activeRound === "SF" || activeRound === "F" ? "pt-2 mt-2" : "pt-4 mt-4"
+      )}>
         {/* Back button */}
         <Button 
-          variant="outline" 
+          variant="outline"
+          className="border-white/20 hover:bg-white/10"
           onClick={() => {
             const leftMatches = activeMatches.filter(m => isLeftHalf(m.id));
             const rightMatches = activeMatches.filter(m => !isLeftHalf(m.id));
@@ -644,7 +596,7 @@ const BracketView = ({
               return (
                 <Button 
                   onClick={() => handleBracketHalfChange("right")}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-gradient-to-r from-gold-dark via-gold to-gold-light text-fifa-blue font-semibold shadow-lg shadow-gold/25"
                 >
                   Continue →
                 </Button>
@@ -656,7 +608,7 @@ const BracketView = ({
               return (
                 <Button 
                   onClick={() => handleRoundChange(nextRound)}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-gradient-to-r from-gold-dark via-gold to-gold-light text-fifa-blue font-semibold shadow-lg shadow-gold/25"
                 >
                   Continue →
                 </Button>
@@ -668,7 +620,7 @@ const BracketView = ({
               return (
                 <Button 
                   onClick={() => handleRoundChange(nextRound)}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-gradient-to-r from-gold-dark via-gold to-gold-light text-fifa-blue font-semibold shadow-lg shadow-gold/25 disabled:opacity-50"
                   disabled={!isComplete}
                 >
                   Continue →
@@ -681,7 +633,7 @@ const BracketView = ({
               return (
                 <Button 
                   onClick={() => handleRoundChange(nextRound)}
-                  className="bg-green-600 hover:bg-green-700"
+                  className="bg-gradient-to-r from-gold-dark via-gold to-gold-light text-fifa-blue font-semibold shadow-lg shadow-gold/25 disabled:opacity-50"
                   disabled={!isComplete}
                 >
                   Continue →

@@ -292,11 +292,13 @@ const WorldCupApp = () => {
 
   if (error) {
     return (
-      <div className="p-6 space-y-2">
-        <div className="text-sm text-destructive font-medium">Error loading World Cup data</div>
-        <div className="text-xs text-muted-foreground">{error}</div>
-        <div className="text-xs text-muted-foreground">
-          Check browser console for more details. If using MCP Jam, ensure the server is running.
+      <div className="p-6 space-y-3 animate-fade-in">
+        <div className="glass-card p-4 space-y-2">
+          <div className="text-sm text-red-400 font-medium">Error loading World Cup data</div>
+          <div className="text-xs text-muted-foreground">{error}</div>
+          <div className="text-xs text-muted-foreground">
+            Check browser console for more details. If using MCP Jam, ensure the server is running.
+          </div>
         </div>
       </div>
     );
@@ -304,14 +306,24 @@ const WorldCupApp = () => {
 
   if (loading || !prediction || !bracketTemplate) {
     return (
-      <div className="p-6 text-sm text-muted-foreground">
-        {loading ? "Loading world cup data…" : "Unable to load data (missing prediction or bracket)"}
+      <div className="p-6 flex items-center justify-center min-h-full">
+        <div className="glass-card p-6 text-center space-y-3 animate-fade-in">
+          <div className="trophy-shimmer text-2xl font-display font-semibold">
+            FIFA World Cup 2026
+          </div>
+          <div className="text-sm text-muted-foreground">
+            {loading ? "Loading tournament data…" : "Unable to load data"}
+          </div>
+          <div className="flex justify-center">
+            <div className="w-8 h-8 border-2 border-gold border-t-transparent rounded-full animate-spin" />
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="p-3 sm:p-4 space-y-3 sm:space-y-4 min-h-full">
+    <div className="p-3 sm:p-4 space-y-3 sm:space-y-4 min-h-full animate-fade-in">
 
       {view === "groups" && (
         <GroupSelector

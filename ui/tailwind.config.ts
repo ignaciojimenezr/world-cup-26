@@ -5,6 +5,10 @@ export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["Outfit", "DM Sans", "system-ui", "-apple-system", "sans-serif"],
+        display: ["Outfit", "DM Sans", "system-ui", "sans-serif"],
+      },
       colors: {
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
@@ -35,6 +39,16 @@ export default {
           DEFAULT: "hsl(var(--card))",
           foreground: "hsl(var(--card-foreground))",
         },
+        // FIFA World Cup gold tones
+        gold: {
+          light: "#f5d742",
+          DEFAULT: "#d4a917",
+          dark: "#9c7a0a",
+        },
+        fifa: {
+          blue: "#0a2463",
+          green: "#1a6b52",
+        },
       },
       borderRadius: {
         lg: "var(--radius)",
@@ -50,10 +64,23 @@ export default {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
         },
+        shimmer: {
+          "0%": { backgroundPosition: "-200% center" },
+          "100%": { backgroundPosition: "200% center" },
+        },
+        "fade-in": {
+          from: { opacity: "0", transform: "translateY(8px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
+        shimmer: "shimmer 3s linear infinite",
+        "fade-in": "fade-in 0.4s ease-out forwards",
+      },
+      backdropBlur: {
+        xs: "2px",
       },
     },
   },

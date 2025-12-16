@@ -36,32 +36,41 @@ const ThirdPlaceSelector = ({
 
   return (
     <div className="space-y-6">
-      <div className="text-center">
-        <h2 className="text-xl sm:text-2xl font-semibold">Select advancing third-place teams</h2>
+      <div className="text-center space-y-1">
+        <h2 className="text-xl sm:text-2xl font-display font-semibold trophy-shimmer">
+          Best Third-Place Teams
+        </h2>
         <p className="text-muted-foreground text-sm">
-          Pick exactly 8 of the 12. Selected {selectedCount}/8.
+          Select <span className="text-gold font-medium">8 of 12</span> third-place teams to advance • {selectedCount}/8 selected
         </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
-        {thirdPlaceTeams.map((team) => {
+        {thirdPlaceTeams.map((team, idx) => {
           const checked = selection.advancingThirdPlaceTeamIds.includes(team.id);
           return (
             <Card
               key={team.id}
-              className={checked ? "border-primary shadow-lg" : undefined}
+              className={`glass-card bg-white/5 border-white/10 cursor-pointer transition-all animate-fade-in hover:bg-white/10 ${
+                checked ? "ring-2 ring-gold/60 border-gold/40" : ""
+              }`}
+              style={{ animationDelay: `${idx * 0.03}s` }}
               onClick={() => toggle(team.id)}
             >
               <CardHeader className="flex flex-row items-center justify-between space-y-0">
                 <CardTitle className="text-base flex items-center gap-2">
-                  <span>{team.flagEmoji}</span>
-                  {team.name}
+                  <span className="text-xl">{team.flagEmoji}</span>
+                  <span className={checked ? "text-gold" : ""}>{team.name}</span>
                 </CardTitle>
-                <Checkbox checked={checked} onCheckedChange={() => toggle(team.id)} />
+                <Checkbox 
+                  checked={checked} 
+                  onCheckedChange={() => toggle(team.id)} 
+                  className={checked ? "border-gold data-[state=checked]:bg-gold data-[state=checked]:text-fifa-blue" : "border-white/30"}
+                />
               </CardHeader>
               <CardContent>
-                <CardDescription>
-                  Confederation: {team.confederation ?? "N/A"}
+                <CardDescription className="text-muted-foreground">
+                  {team.confederation ?? "N/A"}
                 </CardDescription>
               </CardContent>
             </Card>
@@ -71,10 +80,14 @@ const ThirdPlaceSelector = ({
 
       {/* Navigation at bottom */}
       <div className="flex justify-center gap-3 pt-4">
-        <Button variant="outline" onClick={onBack}>
+        <Button variant="outline" onClick={onBack} className="border-white/20 hover:bg-white/10">
           ← Back
         </Button>
-        <Button disabled={!ready} onClick={onContinue} className={ready ? "bg-green-600 hover:bg-green-700" : ""}>
+        <Button 
+          disabled={!ready} 
+          onClick={onContinue} 
+          className={ready ? "bg-gradient-to-r from-gold-dark via-gold to-gold-light text-fifa-blue font-semibold shadow-lg shadow-gold/25" : ""}
+        >
           Continue →
         </Button>
       </div>

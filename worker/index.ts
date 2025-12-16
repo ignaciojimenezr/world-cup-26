@@ -1,5 +1,6 @@
 // Cloudflare Worker entrypoint for World Cup 2026 MCP Server + UI
 // Serves MCP endpoints and inlined UI assets from the ASSETS binding.
+// Build trigger
 
 import { bracketTemplate } from "../server/bracket-template";
 import { groups, teams, playoffSlots } from "../server/teams";
