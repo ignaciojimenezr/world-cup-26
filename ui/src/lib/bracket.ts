@@ -23,9 +23,112 @@ const getTeamGroup = (teamId: TeamId, prediction: WorldCupPrediction): GroupId |
 };
 
 /**
- * FIFA third-place assignment algorithm
- * Processes slots in order, assigning highest-ranked eligible team to each slot
+ * Constraint-satisfying third-place assignment using backtracking with MRV.
+ * Assigns exactly 8 teams to 8 slots such that each team's group letter
+ * is contained in the slot's allowed group letters.
  */
+type QualifiedThird = { id: TeamId; groupLetter: GroupId };
+type Slot = { slotId: string; label: string; letters: string };
+
+/**
+ * Get candidates for a slot (teams that can be assigned to it)
+ */
+const getCandidates = (
+  slot: Slot,
+  qualifiedThirds: QualifiedThird[],
+  usedTeams: Set<TeamId>
+): QualifiedThird[] => {
+  return qualifiedThirds.filter(
+    (team) => !usedTeams.has(team.id) && slot.letters.includes(team.groupLetter)
+  );
+};
+
+/**
+ * Find the slot with minimum remaining values (fewest candidates)
+ */
+const selectSlotMRV = (
+  remainingSlots: Slot[],
+  qualifiedThirds: QualifiedThird[],
+  usedTeams: Set<TeamId>
+): Slot | null => {
+  if (remainingSlots.length === 0) return null;
+
+  let minSlot = remainingSlots[0];
+  let minCount = getCandidates(minSlot, qualifiedThirds, usedTeams).length;
+
+  for (let i = 1; i < remainingSlots.length; i++) {
+    const count = getCandidates(remainingSlots[i], qualifiedThirds, usedTeams).length;
+    if (count < minCount) {
+      minSlot = remainingSlots[i];
+      minCount = count;
+    }
+  }
+
+  return minSlot;
+};
+
+/**
+ * Backtracking solver with MRV heuristic
+ */
+const assignThirdPlacesBacktracking = (
+  qualifiedThirds: QualifiedThird[],
+  slots: Slot[]
+): Map<string, TeamId> => {
+  const assignments = new Map<string, TeamId>();
+  const usedTeams = new Set<TeamId>();
+
+  const backtrack = (remainingSlots: Slot[]): boolean => {
+    if (remainingSlots.length === 0) {
+      return true; // All slots assigned
+    }
+
+    // MRV: select slot with fewest candidates
+    const slot = selectSlotMRV(remainingSlots, qualifiedThirds, usedTeams);
+    if (!slot) return false;
+
+    const candidates = getCandidates(slot, qualifiedThirds, usedTeams);
+    
+    // Try candidates in ranked order (best→worst) for deterministic output
+    for (const team of candidates) {
+      // Try this assignment
+      assignments.set(slot.slotId, team.id);
+      usedTeams.add(team.id);
+
+      // Recurse with remaining slots
+      const remaining = remainingSlots.filter((s) => s.slotId !== slot.slotId);
+      if (backtrack(remaining)) {
+        return true;
+      }
+
+      // Backtrack
+      assignments.delete(slot.slotId);
+      usedTeams.delete(team.id);
+    }
+
+    return false; // No valid assignment found
+  };
+
+  if (!backtrack([...slots])) {
+    // Build detailed debug info
+    const remainingTeams = qualifiedThirds.filter((t) => !usedTeams.has(t.id));
+    const remainingSlots = slots.filter((s) => !assignments.has(s.slotId));
+    const candidatesPerSlot = remainingSlots.map((slot) => {
+      const candidates = getCandidates(slot, qualifiedThirds, usedTeams);
+      return `  ${slot.label}(${slot.letters}): ${candidates.length} candidates [${candidates.map((t) => `${t.id}(${t.groupLetter})`).join(", ")}]`;
+    });
+
+    throw new Error(
+      `Cannot assign third-place teams to slots: unsatisfiable constraints.\n` +
+      `Qualified teams (${qualifiedThirds.length}): ${qualifiedThirds.map((t) => `${t.id}(${t.groupLetter})`).join(", ")}\n` +
+      `Remaining teams: ${remainingTeams.map((t) => `${t.id}(${t.groupLetter})`).join(", ")}\n` +
+      `Remaining slots: ${remainingSlots.map((s) => s.label).join(", ")}\n` +
+      `Candidates per slot:\n${candidatesPerSlot.join("\n")}`
+    );
+  }
+
+  return assignments;
+};
+
 const assignThirdPlaceTeams = (
   prediction: WorldCupPrediction,
   template: Bracket
@@ -39,53 +142,42 @@ const assignThirdPlaceTeams = (
     }
   }
 
-  // Rank all third-place teams (by order in advancingThirdPlaceTeamIds)
-  // The first 8 in advancingThirdPlaceTeamIds are the top 8
-  const ranked = prediction.thirdPlaceSelection.advancingThirdPlaceTeamIds
-    .map((teamId) => {
-      const team = thirdPlaceTeams.find((t) => t.teamId === teamId);
-      return team ? { teamId, groupId: team.groupId } : null;
-    })
-    .filter((t): t is { teamId: TeamId; groupId: GroupId } => t !== null);
-
-  // Get all third-place slots from bracket template, sorted by rankIndex
-  const thirdPlaceSlots: Array<{ slotId: string; rankIndex: number; groupCombination: string }> = [];
-  for (const match of template.matches) {
-    if (match.homeSlot.source?.type === "third-ranked" && match.homeSlot.source.groupCombination) {
-      thirdPlaceSlots.push({
-        slotId: match.homeSlot.id,
-        rankIndex: match.homeSlot.source.rankIndex,
-        groupCombination: match.homeSlot.source.groupCombination,
-      });
-    }
-    if (match.awaySlot.source?.type === "third-ranked" && match.awaySlot.source.groupCombination) {
-      thirdPlaceSlots.push({
-        slotId: match.awaySlot.id,
-        rankIndex: match.awaySlot.source.rankIndex,
-        groupCombination: match.awaySlot.source.groupCombination,
-      });
-    }
-  }
-  thirdPlaceSlots.sort((a, b) => a.rankIndex - b.rankIndex);
-
-  // Assign teams to slots using FIFA algorithm
-  const assignments = new Map<string, TeamId>(); // Use slotId as key instead of rankIndex
-  const available = [...ranked]; // Copy array
-
-  for (const slot of thirdPlaceSlots) {
-    // Find highest-ranked remaining team whose group is in the slot combination
-    const teamIndex = available.findIndex((t) =>
-      slot.groupCombination.includes(t.groupId)
-    );
-
-    if (teamIndex !== -1) {
-      const team = available[teamIndex];
-      assignments.set(slot.slotId, team.teamId);
-      available.splice(teamIndex, 1); // Remove from available
+  // Get exactly 8 qualified teams (by order in advancingThirdPlaceTeamIds)
+  // Array order maintains rank (best→worst) for deterministic output
+  const qualifiedThirds: QualifiedThird[] = [];
+  for (let i = 0; i < prediction.thirdPlaceSelection.advancingThirdPlaceTeamIds.length && qualifiedThirds.length < 8; i++) {
+    const teamId = prediction.thirdPlaceSelection.advancingThirdPlaceTeamIds[i];
+    const team = thirdPlaceTeams.find((t) => t.teamId === teamId);
+    if (team) {
+      qualifiedThirds.push({ id: teamId, groupLetter: team.groupId });
+    } else {
+      // Try to find group from all positions
+      const groupId = getTeamGroup(teamId, prediction);
+      if (groupId) {
+        qualifiedThirds.push({ id: teamId, groupLetter: groupId });
+      }
     }
   }
 
-  return assignments;
+  // If not exactly 8 teams, return empty assignments (partial selection or initial state)
+  // The UI will show TBD until all 8 teams are selected
+  if (qualifiedThirds.length !== 8) {
+    return new Map<string, TeamId>();
+  }
+
+  // Define slots with their constraints
+  const slots: Slot[] = [
+    { slotId: "R32-M3-A", label: "3ABCDF", letters: "ABCDF" },
+    { slotId: "R32-M6-A", label: "3CDFGH", letters: "CDFGH" },
+    { slotId: "R32-M7-A", label: "3CEFHI", letters: "CEFHI" },
+    { slotId: "R32-M10-A", label: "3BEFIJ", letters: "BEFIJ" },
+    { slotId: "R32-M9-A", label: "3AEHIJ", letters: "AEHIJ" },
+    { slotId: "R32-M13-A", label: "3EFGIJ", letters: "EFGIJ" },
+    { slotId: "R32-M8-A", label: "3EHIJK", letters: "EHIJK" },
+    { slotId: "R32-M16-A", label: "3DEIJL", letters: "DEIJL" },
+  ];
+
+  return assignThirdPlacesBacktracking(qualifiedThirds, slots);
 };
 
 const resolveSource = (
@@ -98,14 +190,20 @@ const resolveSource = (
   switch (source.type) {
     case "group-position": {
       const group = prediction.groups.find((g) => g.groupId === source.groupId);
-      return group?.positions[source.position];
+      const teamId = group?.positions[source.position];
+      // If position is not filled, return empty string instead of undefined to prevent TBD
+      // (This shouldn't happen if user filled all positions, but prevents TBD)
+      return teamId || "";
     }
     case "third-ranked": {
       if (!thirdPlaceAssignments || !slotId) {
-        // Fallback to old behavior if assignments not provided
-        return prediction.thirdPlaceSelection.advancingThirdPlaceTeamIds[source.rankIndex];
+        // If assignments not provided, return undefined (will show as TBD)
+        return undefined;
       }
-      return thirdPlaceAssignments.get(slotId);
+      const assigned = thirdPlaceAssignments.get(slotId);
+      // If no assignment found (e.g., teams not yet selected), return undefined
+      // This allows the UI to show TBD until third-place teams are selected
+      return assigned;
     }
     case "winner-of-match":
       return prediction.knockout.winnersByMatchId[source.matchId];

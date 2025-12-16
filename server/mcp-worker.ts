@@ -13,6 +13,11 @@ import {
 import { bracketTemplate } from "./bracket-template";
 import { groups, teams, playoffSlots } from "./teams";
 
+// Type for assets binding provided by Wrangler when using `assets = { directory = "./ui/dist" }`
+type AssetsBinding = {
+  fetch: (request: Request) => Promise<Response>;
+};
+
 // UI resource URI key for metadata (SEP-1865)
 const UI_RESOURCE_URI_KEY = "ui/resourceUri";
 
@@ -87,7 +92,7 @@ const resolveBracket = (prediction: WorldCupPrediction): ResolvedBracket => {
 // Helper: Load HTML from Assets binding
 // --------------------------------------------------------------------------
 async function loadHtml(
-  assets: Fetcher | undefined,
+  assets: AssetsBinding | undefined,
   htmlPath: string,
 ): Promise<string> {
   if (!assets) {
@@ -128,7 +133,7 @@ async function loadHtml(
 // Helper: Build self-contained HTML with inlined assets
 // --------------------------------------------------------------------------
 async function buildMcpAppHtml(
-  assets: Fetcher,
+  assets: AssetsBinding,
   resourceUri: string,
 ): Promise<string> {
   // Load the main HTML file (built widget)
@@ -308,25 +313,6 @@ const toolHandlers: Record<string, ToolHandler> = {
     savedPrediction = incoming;
     return { ok: true, summary: "Prediction saved", snapshot: incoming };
   },
-
-  "worldcup.computeBracket": async (args) => {
-    const nextPrediction: WorldCupPrediction = {
-      groups: (args.groups as GroupPrediction[]) ?? defaultGroupPredictions(),
-      thirdPlaceSelection: (args.thirdPlaceSelection as WorldCupPrediction["thirdPlaceSelection"]) ?? {
-        advancingThirdPlaceTeamIds: [],
-      },
-      knockout: (args.knockout as WorldCupPrediction["knockout"]) ?? emptyKnockout(),
-    };
-    if (nextPrediction.thirdPlaceSelection.advancingThirdPlaceTeamIds.length !== 8) {
-      throw new Error("thirdPlaceSelection must contain exactly 8 team ids");
-    }
-    const bracket: ResolvedBracket = resolveBracket(nextPrediction);
-    return { bracket, metadata: { [UI_RESOURCE_URI_KEY]: "ui://worldcup/bracket" } };
-  },
-
-  "worldcup.getBracketTemplate": async () => ({ bracketTemplate }),
-
-  "worldcup.test": async () => ({ message: "Test successful", time: new Date().toISOString() }),
 };
 
 // --------------------------------------------------------------------------
@@ -365,41 +351,6 @@ const mcpTools = [
       required: ["prediction"],
     },
   },
-  {
-    name: "worldcup.computeBracket",
-    description: "Compute a resolved bracket from group predictions and third-place selection. Opens the bracket view.",
-    inputSchema: {
-      type: "object" as const,
-      properties: {
-        groups: { type: "array" },
-        thirdPlaceSelection: { type: "object" },
-        knockout: { type: "object" },
-      },
-      required: ["groups", "thirdPlaceSelection"],
-    },
-    _meta: {
-      "ui/resourceUri": "ui://worldcup/bracket",
-    },
-  },
-  {
-    name: "worldcup.getBracketTemplate",
-    description: "Return the deterministic bracket template.",
-    inputSchema: {
-      type: "object" as const,
-      properties: {},
-    },
-  },
-  {
-    name: "worldcup.test",
-    description: "Test tool to verify MCP App rendering. Opens a simple static test page.",
-    inputSchema: {
-      type: "object" as const,
-      properties: {},
-    },
-    _meta: {
-      "ui/resourceUri": "ui://worldcup/test",
-    },
-  },
 ];
 
 // MCP UI Resources
@@ -408,37 +359,8 @@ const MCP_RESOURCES = [
   { uri: "ui://worldcup/groups", name: "World Cup Groups", mimeType: "text/html;profile=mcp-app" },
   { uri: "ui://worldcup/third-place", name: "Third Place Selection", mimeType: "text/html;profile=mcp-app" },
   { uri: "ui://worldcup/bracket", name: "Knockout Bracket", mimeType: "text/html;profile=mcp-app" },
-  { uri: "ui://worldcup/test", name: "Test Page", mimeType: "text/html;profile=mcp-app" },
 ];
 
-// Simple static test HTML
-const TEST_HTML = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MCP App Test</title>
-  <style>
-    body { font-family: system-ui, sans-serif; padding: 20px; background: #f5f5f5; }
-    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    h1 { color: #333; }
-    p { color: #666; }
-    .success { color: green; font-weight: bold; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>🏆 MCP App Test</h1>
-    <p class="success">✅ If you can see this, MCP Jam is rendering the HTML correctly!</p>
-    <p>This is a simple static HTML page without JavaScript.</p>
-    <p>Time: <span id="time">Loading...</span></p>
-  </div>
-  <script>
-    document.getElementById('time').textContent = new Date().toLocaleTimeString();
-    console.log('[MCP Test App] Static test page loaded successfully');
-  </script>
-</body>
-</html>`;
 
 // --------------------------------------------------------------------------
 // MCP Server
@@ -463,9 +385,9 @@ const SERVER_INFO = {
 };
 
 class McpServer {
-  private assets: Fetcher;
+  private assets: AssetsBinding;
 
-  constructor(assets: Fetcher) {
+  constructor(assets: AssetsBinding) {
     this.assets = assets;
   }
 
@@ -587,19 +509,13 @@ class McpServer {
         }
 
         try {
-          let html: string;
-          if (uri === "ui://worldcup/test") {
-            html = TEST_HTML;
-            console.log(`[MCP] Using test HTML for ${uri}`);
-          } else {
-            console.log(`[MCP] Building HTML for ${uri}...`);
-            html = await buildMcpAppHtml(this.assets, uri);
-            // Verify we got HTML, not JS
-            if (!html.includes("<!doctype html") && !html.includes("<html")) {
-              throw new Error(`Expected HTML but got: ${html.substring(0, 100)}...`);
-            }
-            console.log(`[MCP] Built HTML for ${uri}, length: ${html.length}`);
+          console.log(`[MCP] Building HTML for ${uri}...`);
+          const html = await buildMcpAppHtml(this.assets, uri);
+          // Verify we got HTML, not JS
+          if (!html.includes("<!doctype html") && !html.includes("<html")) {
+            throw new Error(`Expected HTML but got: ${html.substring(0, 100)}...`);
           }
+          console.log(`[MCP] Built HTML for ${uri}, length: ${html.length}`);
 
           const response = {
             jsonrpc: "2.0" as const,
@@ -677,7 +593,8 @@ class McpServer {
   }
 }
 
-export function createMcpServer(assets: Fetcher): McpServer {
+export function createMcpServer(assets: AssetsBinding): McpServer {
   return new McpServer(assets);
 }
+
 

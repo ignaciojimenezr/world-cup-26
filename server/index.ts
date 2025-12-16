@@ -138,41 +138,6 @@ const mcpTools: McpTool[] = [
       required: ["prediction"],
     },
   },
-  {
-    name: "worldcup.computeBracket",
-    description: "Compute a resolved bracket from group predictions and third-place selection. Opens the bracket view.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        groups: { type: "array", description: "Group predictions" },
-        thirdPlaceSelection: { type: "object", description: "Third place selection" },
-        knockout: { type: "object", description: "Knockout predictions" },
-      },
-      required: ["groups", "thirdPlaceSelection"],
-    },
-    _meta: {
-      "ui/resourceUri": "ui://worldcup/bracket",
-    },
-  },
-  {
-    name: "worldcup.getBracketTemplate",
-    description: "Return the deterministic bracket template.",
-    inputSchema: {
-      type: "object",
-      properties: {},
-    },
-  },
-  {
-    name: "worldcup.test",
-    description: "Test tool to verify MCP App rendering. Opens a simple static test page.",
-    inputSchema: {
-      type: "object",
-      properties: {},
-    },
-    _meta: {
-      "ui/resourceUri": "ui://worldcup/test",
-    },
-  },
 ];
 
 // --------------------------------------------------------------------------
@@ -208,26 +173,6 @@ const toolHandlers: Record<string, ToolHandler> = {
     savedPrediction = incoming;
     return { ok: true, summary: "Prediction saved", snapshot: incoming };
   },
-
-  "worldcup.computeBracket": async (args) => {
-    const nextPrediction: WorldCupPrediction = {
-      groups: (args.groups as GroupPrediction[]) ?? defaultGroupPredictions(),
-      thirdPlaceSelection: (args.thirdPlaceSelection as WorldCupPrediction["thirdPlaceSelection"]) ?? {
-        advancingThirdPlaceTeamIds: [],
-      },
-      knockout: (args.knockout as WorldCupPrediction["knockout"]) ?? emptyKnockout(),
-    };
-    if (nextPrediction.thirdPlaceSelection.advancingThirdPlaceTeamIds.length !== 8) {
-      throw new Error("thirdPlaceSelection must contain exactly 8 team ids");
-    }
-    const bracket: ResolvedBracket = resolveBracket(nextPrediction);
-    return { bracket, metadata: { [UI_RESOURCE_URI_KEY]: "ui://worldcup/bracket" } };
-  },
-
-  "worldcup.getBracketTemplate": async () => ({ bracketTemplate }),
-
-  // Simple test tool for debugging MCP App rendering
-  "worldcup.test": async () => ({ message: "Test successful", time: new Date().toISOString() }),
 };
 
 // --------------------------------------------------------------------------
@@ -290,37 +235,8 @@ const MCP_RESOURCES = [
   { uri: "ui://worldcup/groups", name: "World Cup Groups", mimeType: "text/html+mcp" },
   { uri: "ui://worldcup/third-place", name: "Third Place Selection", mimeType: "text/html+mcp" },
   { uri: "ui://worldcup/bracket", name: "Knockout Bracket", mimeType: "text/html+mcp" },
-  { uri: "ui://worldcup/test", name: "Test Page", mimeType: "text/html+mcp" },
 ];
 
-// Simple static test HTML for debugging
-const TEST_HTML = `<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>MCP App Test</title>
-  <style>
-    body { font-family: system-ui, sans-serif; padding: 20px; background: #f5f5f5; }
-    .card { background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-    h1 { color: #333; }
-    p { color: #666; }
-    .success { color: green; font-weight: bold; }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>🏆 MCP App Test</h1>
-    <p class="success">✅ If you can see this, MCP Jam is rendering the HTML correctly!</p>
-    <p>This is a simple static HTML page without JavaScript.</p>
-    <p>Time: <span id="time">Loading...</span></p>
-  </div>
-  <script>
-    document.getElementById('time').textContent = new Date().toLocaleTimeString();
-    console.log('[MCP Test App] Static test page loaded successfully');
-  </script>
-</body>
-</html>`;
 
 const handleMcpRequest = async (req: JsonRpcRequest): Promise<JsonRpcResponse> => {
   const id = req.id ?? null;
@@ -434,8 +350,7 @@ const handleMcpRequest = async (req: JsonRpcRequest): Promise<JsonRpcResponse> =
       }
 
       try {
-        // Serve static test page for debugging, or full React app for real resources
-        const html = uri === "ui://worldcup/test" ? TEST_HTML : buildMcpAppHtml(uri);
+        const html = buildMcpAppHtml(uri);
         console.log(`[MCP] resources/read - Built HTML, length: ${html.length}, starts with: ${html.slice(0, 50)}`);
         return {
           jsonrpc: "2.0",

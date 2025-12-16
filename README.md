@@ -34,10 +34,8 @@ All HTML served with `Content-Type: text/html;profile=mcp-app`
 
 | Tool | Description |
 |------|-------------|
-| `worldcup.getInitialData` | Returns teams, groups, bracket, saved prediction |
+| `worldcup.getInitialData` | Returns teams, groups, bracket template, saved prediction |
 | `worldcup.savePrediction` | Persist prediction (in-memory) |
-| `worldcup.computeBracket` | Resolve bracket from predictions |
-| `worldcup.getBracketTemplate` | Get bracket structure |
 
 ## Project Structure
 

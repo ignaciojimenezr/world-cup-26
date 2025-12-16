@@ -94,14 +94,12 @@ const WorldCupApp = () => {
     // The host calls the tool and passes the result via this event
     const handleToolResult = (event: Event) => {
       const customEvent = event as CustomEvent;
-      console.log("[WorldCup] Received mcp:tool-result event:", customEvent.detail);
       const detail = customEvent.detail;
       if (detail && typeof detail === "object") {
         // The tool result is in detail.result or detail directly
         const result = detail.result ?? detail;
         const payload = (result as any)?.data ?? result;
         if (payload?.teams || payload?.groups) {
-          console.log("[WorldCup] Setting data from mcp:tool-result:", payload);
           dataReceivedRef.current = true;
           setTeams(payload.teams ?? []);
           setGroups(payload.groups ?? []);
@@ -120,7 +118,6 @@ const WorldCupApp = () => {
       if (data?.jsonrpc === "2.0" && data?.result) {
         const payload = data.result?.data ?? data.result;
         if (payload?.teams || payload?.groups) {
-          console.log("[WorldCup] Setting data from postMessage:", payload);
           dataReceivedRef.current = true;
           setTeams(payload.teams ?? []);
           setGroups(payload.groups ?? []);
@@ -136,7 +133,6 @@ const WorldCupApp = () => {
     window.addEventListener("message", handlePostMessage as EventListener);
 
     if (isInMcpHost()) {
-      console.log("[WorldCup] Running in MCP host - calling private tool (no UI reload)");
       // Call the private tool that doesn't have ui/resourceUri metadata
       // This won't trigger MCP Jam to reload the UI
       fetchInitialData();
@@ -153,7 +149,6 @@ const WorldCupApp = () => {
   }, []);
 
   const fetchInitialData = async () => {
-    console.log("[WorldCup] Fetching initial data...");
     try {
       // Use the private tool that doesn't have ui/resourceUri metadata
       // This prevents MCP Jam from reloading the UI on every call
@@ -172,16 +167,12 @@ const WorldCupApp = () => {
         playoffSlots?: Record<string, string[]>;
       }>("worldcup.getDataForWidget", {});
       
-      console.log("[WorldCup] Raw response:", response);
-      
       // Handle different response shapes
       const payload = response?.data ?? response;
       
       if (!payload) {
         throw new Error("Empty response from worldcup.getInitialData");
       }
-      
-      console.log("[WorldCup] Parsed payload:", payload);
       
       setTeams(payload.teams ?? []);
       setGroups(payload.groups ?? []);
@@ -192,7 +183,6 @@ const WorldCupApp = () => {
         setResolvedBracket(resolveBracketLocally(payload.bracketTemplate, payload.prediction));
       }
     } catch (err) {
-      console.error("[WorldCup] Error loading data:", err);
       setError((err as Error)?.message ?? "Failed to load initial data");
     } finally {
       setLoading(false);
@@ -268,26 +258,8 @@ const WorldCupApp = () => {
   const goTo = (next: View) => setView(next);
 
   useEffect(() => {
-    if (view !== "bracket" || !prediction) return;
-    (async () => {
-      try {
-        const response = await callTool<{ bracket: ResolvedBracket }>("worldcup.computeBracket", {
-          groups: prediction.groups,
-          thirdPlaceSelection: prediction.thirdPlaceSelection,
-          knockout: prediction.knockout,
-        });
-        const payload = response?.bracket ?? (response as unknown as ResolvedBracket);
-        if (payload?.matches) {
-          setResolvedBracket(payload);
-          return;
-        }
-      } catch {
-        // fall back to local resolution if server tool is unavailable
-      }
-      if (bracketTemplate) {
-        setResolvedBracket(resolveBracketLocally(bracketTemplate, prediction));
-      }
-    })();
+    if (view !== "bracket" || !prediction || !bracketTemplate) return;
+    setResolvedBracket(resolveBracketLocally(bracketTemplate, prediction));
   }, [view, prediction, bracketTemplate]);
 
   if (error) {

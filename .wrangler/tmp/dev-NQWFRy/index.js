@@ -1359,79 +1359,6 @@ var defaultPrediction = /* @__PURE__ */ __name(() => ({
   thirdPlaceSelection: { advancingThirdPlaceTeamIds: [] },
   knockout: emptyKnockout()
 }), "defaultPrediction");
-var assignThirdPlaceTeams = /* @__PURE__ */ __name((prediction) => {
-  const thirdPlaceTeams = [];
-  for (const group of prediction.groups) {
-    const teamId = group.positions[3];
-    if (teamId) {
-      thirdPlaceTeams.push({ teamId, groupId: group.groupId });
-    }
-  }
-  const ranked = prediction.thirdPlaceSelection.advancingThirdPlaceTeamIds.map((teamId) => {
-    const team = thirdPlaceTeams.find((t) => t.teamId === teamId);
-    return team ? { teamId, groupId: team.groupId } : null;
-  }).filter((t) => t !== null);
-  const thirdPlaceSlots = [];
-  for (const match of bracketTemplate.matches) {
-    if (match.homeSlot.source?.type === "third-ranked" && match.homeSlot.source.groupCombination) {
-      thirdPlaceSlots.push({
-        slotId: match.homeSlot.id,
-        rankIndex: match.homeSlot.source.rankIndex,
-        groupCombination: match.homeSlot.source.groupCombination
-      });
-    }
-    if (match.awaySlot.source?.type === "third-ranked" && match.awaySlot.source.groupCombination) {
-      thirdPlaceSlots.push({
-        slotId: match.awaySlot.id,
-        rankIndex: match.awaySlot.source.rankIndex,
-        groupCombination: match.awaySlot.source.groupCombination
-      });
-    }
-  }
-  thirdPlaceSlots.sort((a, b) => a.rankIndex - b.rankIndex);
-  const assignments = /* @__PURE__ */ new Map();
-  const available = [...ranked];
-  for (const slot2 of thirdPlaceSlots) {
-    const teamIndex = available.findIndex(
-      (t) => slot2.groupCombination.includes(t.groupId)
-    );
-    if (teamIndex !== -1) {
-      const team = available[teamIndex];
-      assignments.set(slot2.slotId, team.teamId);
-      available.splice(teamIndex, 1);
-    }
-  }
-  return assignments;
-}, "assignThirdPlaceTeams");
-var resolveSource = /* @__PURE__ */ __name((source, prediction, thirdPlaceAssignments, slotId) => {
-  if (!source) return void 0;
-  switch (source.type) {
-    case "group-position": {
-      const group = prediction.groups.find((g) => g.groupId === source.groupId);
-      return group?.positions[source.position];
-    }
-    case "third-ranked": {
-      if (!thirdPlaceAssignments || !slotId) {
-        return prediction.thirdPlaceSelection.advancingThirdPlaceTeamIds[source.rankIndex];
-      }
-      return thirdPlaceAssignments.get(slotId);
-    }
-    case "winner-of-match":
-      return prediction.knockout.winnersByMatchId[source.matchId];
-    default:
-      return void 0;
-  }
-}, "resolveSource");
-var resolveSlotTeamId = /* @__PURE__ */ __name((slot2, prediction, thirdPlaceAssignments) => resolveSource(slot2.source, prediction, thirdPlaceAssignments, slot2.id), "resolveSlotTeamId");
-var resolveBracket = /* @__PURE__ */ __name((prediction) => {
-  const thirdPlaceAssignments = assignThirdPlaceTeams(prediction);
-  const matches = bracketTemplate.matches.map((match) => ({
-    ...match,
-    homeTeamId: resolveSlotTeamId(match.homeSlot, prediction, thirdPlaceAssignments),
-    awayTeamId: resolveSlotTeamId(match.awaySlot, prediction, thirdPlaceAssignments)
-  }));
-  return { matches };
-}, "resolveBracket");
 var UI_RESOURCE_URI_KEY = "ui/resourceUri";
 var mcpTools = [
   {
@@ -1455,31 +1382,6 @@ var mcpTools = [
       },
       required: ["prediction"]
     }
-  },
-  {
-    name: "worldcup.computeBracket",
-    description: "Compute a resolved bracket from group predictions and third-place selection. Opens the bracket view.",
-    inputSchema: {
-      type: "object",
-      properties: {
-        groups: { type: "array", description: "Group predictions" },
-        thirdPlaceSelection: { type: "object", description: "Third place selection" },
-        knockout: { type: "object", description: "Knockout predictions" }
-      },
-      required: ["groups", "thirdPlaceSelection"]
-    },
-    _meta: { "ui/resourceUri": "ui://worldcup/bracket" }
-  },
-  {
-    name: "worldcup.getBracketTemplate",
-    description: "Return the deterministic bracket template.",
-    inputSchema: { type: "object", properties: {} }
-  },
-  {
-    name: "worldcup.test",
-    description: "Test tool to verify MCP App rendering. Opens a simple static test page.",
-    inputSchema: { type: "object", properties: {} },
-    _meta: { "ui/resourceUri": "ui://worldcup/test" }
   }
 ];
 var savedPrediction = null;
@@ -1500,18 +1402,7 @@ var toolHandlers = {
     if (!incoming) throw new Error("Missing prediction parameter");
     savedPrediction = incoming;
     return { ok: true, summary: "Prediction saved", snapshot: incoming };
-  }, "worldcup.savePrediction"),
-  "worldcup.computeBracket": /* @__PURE__ */ __name(async (args) => {
-    const nextPrediction = {
-      groups: args.groups ?? defaultGroupPredictions(),
-      thirdPlaceSelection: args.thirdPlaceSelection ?? { advancingThirdPlaceTeamIds: [] },
-      knockout: args.knockout ?? emptyKnockout()
-    };
-    const bracket = resolveBracket(nextPrediction);
-    return { bracket, metadata: { [UI_RESOURCE_URI_KEY]: "ui://worldcup/bracket" } };
-  }, "worldcup.computeBracket"),
-  "worldcup.getBracketTemplate": /* @__PURE__ */ __name(async () => ({ bracketTemplate }), "worldcup.getBracketTemplate"),
-  "worldcup.test": /* @__PURE__ */ __name(async () => ({ message: "Test successful", time: (/* @__PURE__ */ new Date()).toISOString() }), "worldcup.test")
+  }, "worldcup.savePrediction")
 };
 var SERVER_INFO = { name: "worldcup-2026", version: "1.0.0" };
 var loadAssetText = /* @__PURE__ */ __name(async (env2, path) => {
@@ -1598,8 +1489,7 @@ var handleMcpRequest = /* @__PURE__ */ __name(async (req, env2) => {
           resources: [
             { uri: "ui://worldcup/groups", name: "World Cup Groups", mimeType: "text/html;profile=mcp-app" },
             { uri: "ui://worldcup/third-place", name: "Third Place Selection", mimeType: "text/html;profile=mcp-app" },
-            { uri: "ui://worldcup/bracket", name: "Knockout Bracket", mimeType: "text/html;profile=mcp-app" },
-            { uri: "ui://worldcup/test", name: "Test Page", mimeType: "text/html;profile=mcp-app" }
+            { uri: "ui://worldcup/bracket", name: "Knockout Bracket", mimeType: "text/html;profile=mcp-app" }
           ]
         }
       };
@@ -1610,7 +1500,7 @@ var handleMcpRequest = /* @__PURE__ */ __name(async (req, env2) => {
         return { jsonrpc: "2.0", id, error: { code: -32602, message: "Missing resource URI" } };
       }
       try {
-        const html = uri === "ui://worldcup/test" ? "<!doctype html><html><body><h1>Test</h1></body></html>" : await buildMcpAppHtml(env2, uri);
+        const html = await buildMcpAppHtml(env2, uri);
         return {
           jsonrpc: "2.0",
           id,
@@ -1808,7 +1698,7 @@ var jsonError = /* @__PURE__ */ __name(async (request, env2, _ctx, middlewareCtx
 }, "jsonError");
 var middleware_miniflare3_json_error_default = jsonError;
 
-// .wrangler/tmp/bundle-JE3LTp/middleware-insertion-facade.js
+// .wrangler/tmp/bundle-oqz0Pm/middleware-insertion-facade.js
 var __INTERNAL_WRANGLER_MIDDLEWARE__ = [
   middleware_ensure_req_body_drained_default,
   middleware_miniflare3_json_error_default
@@ -1840,7 +1730,7 @@ function __facade_invoke__(request, env2, ctx, dispatch, finalMiddleware) {
 }
 __name(__facade_invoke__, "__facade_invoke__");
 
-// .wrangler/tmp/bundle-JE3LTp/middleware-loader.entry.ts
+// .wrangler/tmp/bundle-oqz0Pm/middleware-loader.entry.ts
 var __Facade_ScheduledController__ = class ___Facade_ScheduledController__ {
   constructor(scheduledTime, cron, noRetry) {
     this.scheduledTime = scheduledTime;

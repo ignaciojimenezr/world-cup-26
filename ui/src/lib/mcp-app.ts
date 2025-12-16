@@ -45,13 +45,9 @@ const initMessageListener = () => {
   if (initialized) return;
   initialized = true;
 
-  console.log("[MCP App] Initializing postMessage listener");
-
   window.addEventListener("message", (event) => {
     // Handle JSON-RPC responses from the host
     const data = event.data;
-    
-    console.log("[MCP App] Received message:", data);
     
     if (data && typeof data === "object" && data.jsonrpc === "2.0" && "id" in data) {
       const pending = pendingRequests.get(data.id);
@@ -59,14 +55,10 @@ const initMessageListener = () => {
         pendingRequests.delete(data.id);
         
         if (data.error) {
-          console.error("[MCP App] Error response:", data.error);
           pending.reject(new Error(data.error.message || "MCP error"));
         } else {
-          console.log("[MCP App] Success response:", data.result);
           pending.resolve(data.result);
         }
-      } else {
-        console.warn("[MCP App] No pending request for id:", data.id);
       }
     }
   });
@@ -88,8 +80,6 @@ const sendRequest = <T = unknown>(method: string, params?: Record<string, unknow
       params,
     };
 
-    console.log(`[MCP App] Sending postMessage request:`, request);
-
     pendingRequests.set(id, {
       resolve: resolve as (value: unknown) => void,
       reject,
@@ -108,7 +98,6 @@ const sendRequest = <T = unknown>(method: string, params?: Record<string, unknow
     setTimeout(() => {
       if (pendingRequests.has(id)) {
         pendingRequests.delete(id);
-        console.error(`[MCP App] Request ${id} timed out`);
         reject(new Error("Request timeout"));
       }
     }, 30000);
@@ -139,16 +128,12 @@ export const callTool = async <T = unknown>(
   toolName: string,
   args?: Record<string, unknown>
 ): Promise<T> => {
-  console.log(`[MCP App] callTool: ${toolName}`, { args, isInMcpHost: isInMcpHost() });
-  
   if (isInMcpHost()) {
     // Use postMessage to call through the MCP host
     const result = await sendRequest<unknown>(
       "tools/call",
       { name: toolName, arguments: args ?? {} }
     );
-    
-    console.log(`[MCP App] postMessage result for ${toolName}:`, result);
     
     // Parse the MCP tool response format - try different response shapes
     if (result && typeof result === "object") {
@@ -160,17 +145,15 @@ export const callTool = async <T = unknown>(
         if (textContent?.text) {
           try {
             const parsed = JSON.parse(textContent.text);
-            console.log(`[MCP App] Parsed content.text:`, parsed);
             return parsed as T;
           } catch (e) {
-            console.warn(`[MCP App] Failed to parse content.text as JSON:`, textContent.text);
+            // Failed to parse as JSON, continue to other shapes
           }
         }
       }
       
       // Shape 2: Direct data object
       if ("data" in obj) {
-        console.log(`[MCP App] Found direct data property:`, obj);
         return obj as T;
       }
     }

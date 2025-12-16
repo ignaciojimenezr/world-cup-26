@@ -63,9 +63,12 @@ const teamDisplay = (
   teamId: string | undefined,
   teams: Record<TeamId, Team>
 ): { flag: string; name: string; hasTeam: boolean } => {
-  if (!teamId) return { flag: "❓", name: "TBD", hasTeam: false };
+  if (!teamId || teamId === "") return { flag: "❓", name: "TBD", hasTeam: false };
   const t = teams[teamId];
-  if (!t) return { flag: "❓", name: "TBD", hasTeam: false };
+  if (!t) {
+    // If team not found in lookup, show teamId as fallback (shouldn't happen but better than TBD)
+    return { flag: "🏳️", name: teamId, hasTeam: true };
+  }
   return { flag: t.flagEmoji ?? "🏳️", name: t.shortName ?? t.name, hasTeam: true };
 };
 
