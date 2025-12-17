@@ -2,7 +2,7 @@
 
 A complete MCP App for predicting the 2026 FIFA World Cup bracket.
 
-**Live at**: https://worldcup-2026-mcp.ignaciojimenezrocabado.workers.dev
+**Live at**: https://worldcup-2026-mcp.ignaciojimenezrocabado.workers.dev/mcp
 
 ## Project Structure
 
