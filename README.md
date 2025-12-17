@@ -2,40 +2,7 @@
 
 A complete MCP App for predicting the 2026 FIFA World Cup bracket.
 
-## Features
-
-- **Group predictions**: Assign positions 1–4 for all 12 groups (A–L)
-- **Third-place selection**: Pick 8 of 12 third-place teams to advance
-- **Knockout bracket**: Interactive Round-of-32 → Final bracket
-- **Match details**: View stadium, city, date info
-- **Save/load**: Persist predictions via MCP tools
-
-## Quick Start
-
-```bash
-# Build UI and start server
-cd ui && npm install && npm run build && cd ../server && npm install && npm run dev
-```
-
-Then open http://localhost:3000
-
-## Architecture
-
-HTTP-based MCP server:
-
-- `POST /rpc` — JSON-RPC 2.0 for MCP tool calls
-- `GET /ui/worldcup/groups` — Groups view (MCP App)
-- `GET /ui/worldcup/third-place` — Third-place view
-- `GET /ui/worldcup/bracket` — Bracket view
-
-All HTML served with `Content-Type: text/html;profile=mcp-app`
-
-## MCP Tools
-
-| Tool | Description |
-|------|-------------|
-| `worldcup.getInitialData` | Returns teams, groups, bracket template, saved prediction |
-| `worldcup.savePrediction` | Persist prediction (in-memory) |
+**Live at**: https://worldcup-2026-mcp.ignaciojimenezrocabado.workers.dev
 
 ## Project Structure
 
@@ -53,11 +20,27 @@ world-cup-26/
     └── types.ts
 ```
 
-## JSON-RPC Example
+## Tech Stack
 
-```bash
-curl -X POST http://localhost:3000/rpc \
-  -H "Content-Type: application/json" \
-  -d '{"jsonrpc":"2.0","id":1,"method":"worldcup.getInitialData","params":{}}'
-```
+**Runtime:** Cloudflare Workers (edge computing)  
+**Protocol:** Model Context Protocol (MCP)  
+**Frontend:** React 18 with TypeScript, Vite, Tailwind CSS  
+**UI Components:** Radix UI, Framer Motion, Lucide React  
+**Build:** Vite
+
+## Features
+
+- **Group predictions**: Assign positions 1–4 for all 12 groups (A–L)
+- **Third-place selection**: Pick 8 of 12 third-place teams to advance
+- **Constraint-satisfaction solver**: Automatically assigns third-place teams to R32 slots based on group letter constraints
+- **Knockout bracket**: Interactive Round-of-32 → Final bracket
+- **Save/load**: Persist predictions via MCP tools
+
+## Third-Place Team Assignment
+
+The app uses a **constraint-satisfaction solver** to assign the 8 qualified third-place teams to Round-of-32 slots. This ensures a valid bracket that respects FIFA's slot-letter constraints.
+**Note**: This implementation does not follow FIFA Annexe C exactly, but produces a valid bracket consistent with slot-letter constraints when a solution exists.
+
+
+
 
